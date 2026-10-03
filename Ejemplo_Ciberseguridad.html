@@ -1,0 +1,803 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>CiberLab Colegio y Empresa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: consola de un centro de operaciones. Cabecera con escenario, pestañas fijas, un módulo a la vez en paneles de dos columnas que se apilan en móvil. */
+:root{
+  --bg:#0c1227; --surface:#141c3a; --surface2:#1b2549; --line:#2b3868;
+  --fg:#e9edfc; --muted:#9ba7d1;
+  --accent:#4fd4e6; --accent-ink:#06222a; --amber:#ffb454; --violet:#a995ff;
+  --ok:#4bd39a; --warn:#ffc552; --crit:#ff6078;
+  --ls:72%; --ll:66%; --lbg:22%;
+  --display:"Chakra Petch","Trebuchet MS",sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#eef1fa; --surface:#ffffff; --surface2:#e6eaf7; --line:#ccd4ec;
+  --fg:#121a36; --muted:#525e88;
+  --accent:#0a7c92; --accent-ink:#ffffff; --amber:#a85a00; --violet:#5b43c9;
+  --ok:#0f7a4b; --warn:#946000; --crit:#c21f3c;
+  --ls:62%; --ll:36%; --lbg:90%;
+  color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#eef1fa; --surface:#ffffff; --surface2:#e6eaf7; --line:#ccd4ec;
+  --fg:#121a36; --muted:#525e88;
+  --accent:#0a7c92; --accent-ink:#ffffff; --amber:#a85a00; --violet:#5b43c9;
+  --ok:#0f7a4b; --warn:#946000; --crit:#c21f3c;
+  --ls:62%; --ll:36%; --lbg:90%;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55;padding-inline:16px;padding-block:0 48px;
+  background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--line) 55%,transparent) 1px,transparent 0);background-size:26px 26px}
+.wrap{max-width:1180px;margin-inline:auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-size:.82rem}
+
+.top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;padding-block:18px 12px}
+.brand{display:flex;gap:12px;align-items:center}
+.brand svg{width:40px;height:40px;flex:none}
+.brand h1{font-size:1.45rem;letter-spacing:.02em}
+.brand p{font-size:.82rem;color:var(--muted)}
+.seg{display:inline-flex;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 14px;border-radius:999px;font-weight:500;font-size:.88rem;color:var(--muted)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);
+  border-block:1px solid var(--line);margin-inline:-16px;padding-inline:16px;overflow-x:auto}
+.tabs div{display:flex;gap:2px;max-width:1180px;margin-inline:auto}
+.tabs button{border:0;background:transparent;padding:12px 13px;font-family:var(--display);font-weight:600;font-size:.92rem;color:var(--muted);white-space:nowrap;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--accent)}
+
+section{padding-block:26px 8px;display:flex;flex-direction:column;gap:18px}
+.lead{max-width:68ch;color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:18px;align-items:start}
+.cols>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface2);border-radius:9px;padding:8px 14px;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.sm{padding:4px 9px;font-size:.78rem}
+.chip{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.ok{color:var(--ok);border-color:var(--ok)} .chip.warn{color:var(--warn);border-color:var(--warn)} .chip.crit{color:var(--crit);border-color:var(--crit)}
+ul.clean{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.clean li{padding-left:16px;position:relative}
+ul.clean li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;border-radius:2px;background:var(--mk,var(--accent))}
+.log{font-family:var(--mono);font-size:.8rem;background:var(--surface2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;min-height:44px;overflow-wrap:anywhere}
+.log .ok{color:var(--ok)} .log .crit{color:var(--crit)} .log .warn{color:var(--warn)}
+label.tog{display:inline-flex;gap:7px;align-items:center;font-size:.88rem;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:6px 10px;cursor:pointer}
+label.tog input{accent-color:var(--accent);width:16px;height:16px}
+input[type=range]{accent-color:var(--accent);width:100%}
+input[type=text],select{font:inherit;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kpi{background:var(--surface2);border-radius:10px;padding:10px 12px}
+.kpi b{display:block;font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi span{font-size:.76rem;color:var(--muted)}
+.meter{height:10px;border-radius:999px;background:var(--surface2);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .3s}
+
+/* Inicio */
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:22px;align-items:center}
+.hero h2{font-size:clamp(1.9rem,4.4vw,3rem)}
+.hero h2 em{font-style:normal;color:var(--accent)}
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.mod{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.mod:hover{border-color:var(--accent);transform:translateY(-2px)}
+.mod{transition:transform .15s,border-color .15s}
+.mod b{font-family:var(--display);font-size:1.05rem}
+.mod small{color:var(--muted);font-size:.84rem}
+.mod .chip{align-self:flex-start}
+
+/* OSI */
+.stack{display:flex;flex-direction:column;gap:6px}
+.layer{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);border-left:6px solid hsl(var(--h) var(--ls) var(--ll));
+  background:var(--surface2);border-radius:10px;padding:8px 12px;transition:transform .2s,background .2s}
+.layer .ln{font-family:var(--display);font-weight:700;font-size:1.3rem;color:hsl(var(--h) var(--ls) var(--ll))}
+.layer .lname{font-weight:600;min-width:0}
+.layer .lname small{display:block;font-weight:400;color:var(--muted);font-family:var(--mono);font-size:.72rem}
+.layer.on{background:hsl(var(--h) 45% var(--lbg));border-color:hsl(var(--h) var(--ls) var(--ll))}
+.layer.flow{transform:translateX(8px);background:hsl(var(--h) 45% var(--lbg))}
+.pdu{display:flex;flex-wrap:wrap;gap:3px;font-family:var(--mono);font-size:.76rem;min-height:30px}
+.pdu span{padding:4px 8px;border-radius:5px;background:var(--surface2);border:1px solid var(--line)}
+.pdu span.d{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* Malware */
+.mwtypes{display:flex;flex-wrap:wrap;gap:6px}
+.mwtypes button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:5px 12px;font-size:.86rem}
+.mwtypes button.on{background:var(--violet);border-color:var(--violet);color:var(--bg);font-weight:600}
+.net{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.node{aspect-ratio:1;border-radius:5px;background:var(--surface2);border:1px solid var(--line);transition:background .25s}
+.node.s1{background:var(--crit);border-color:var(--crit)}
+.node.s2{background:var(--fg);border-color:var(--crit)}
+.node.s3{background:var(--ok);border-color:var(--ok)}
+.node.g1{margin-right:0}
+.segs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-family:var(--mono);font-size:.68rem;color:var(--muted);text-align:center}
+.segs span{border-top:2px solid var(--line);padding-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line)}
+
+/* SO */
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td button{border:0;background:transparent;padding:0}
+.lvl{display:inline-block;min-width:62px;text-align:center;font-family:var(--mono);font-size:.74rem;padding:3px 8px;border-radius:6px;border:1px solid currentColor}
+.lvl.Alto{color:var(--crit)} .lvl.Medio{color:var(--warn)} .lvl.Bajo{color:var(--ok)}
+tr.on td{background:var(--surface2)}
+.checks{display:flex;flex-direction:column;gap:6px}
+.checks label{display:flex;gap:9px;align-items:flex-start;font-size:.9rem;cursor:pointer}
+.checks input{accent-color:var(--accent);margin-top:4px;width:16px;height:16px;flex:none}
+
+/* SIEM */
+.sev{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:5px;border:1px solid currentColor;white-space:nowrap}
+.sev.info{color:var(--muted)} .sev.media{color:var(--warn)} .sev.alta{color:var(--amber)} .sev.critica{color:var(--crit)}
+.stream{display:flex;flex-direction:column;gap:4px;font-size:.84rem}
+.stream>div{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:baseline;padding:5px 8px;border-radius:7px;background:var(--surface2)}
+.stream time{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.stream span.m{min-width:0;overflow-wrap:anywhere}
+.alert{border:1px solid var(--line);border-left:5px solid var(--sc);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;background:var(--surface2)}
+.alert.done{opacity:.65}
+.bars{display:flex;flex-direction:column;gap:5px;font-size:.8rem}
+.bars>div{display:grid;grid-template-columns:118px 1fr 26px;gap:8px;align-items:center}
+.bars i{display:block;height:12px;border-radius:4px;background:var(--accent);min-width:2px;transition:width .3s}
+.bars b{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
+
+/* Backups */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:150px}
+.week div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:3px;font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.week i{display:block;width:100%;border-radius:5px 5px 0 0;background:var(--accent);transition:height .3s}
+.week div.need i{background:var(--amber)}
+.week div.off i{opacity:.3}
+.disks{display:flex;flex-wrap:wrap;gap:10px}
+.disk{width:86px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);padding:10px 6px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;font-size:.76rem}
+.disk svg{width:42px;height:42px}
+.disk .plat{fill:var(--surface);stroke:var(--accent);stroke-width:3}
+.disk .hub{fill:var(--accent)}
+.disk.fail{border-color:var(--crit)}
+.disk.fail .plat{stroke:var(--crit)} .disk.fail .hub{fill:var(--crit)}
+.verdict{border-radius:10px;padding:10px 12px;border:1px solid currentColor;font-weight:500}
+.verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.crit{color:var(--crit)}
+.verdict span{color:var(--fg);font-weight:400;display:block;font-size:.88rem}
+
+/* Blockchain */
+.chain{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.block{flex:none;width:250px;border:2px solid var(--ok);border-radius:12px;background:var(--surface2);padding:12px;display:flex;flex-direction:column;gap:6px;position:relative}
+.block.bad{border-color:var(--crit)}
+.block+.block::before{content:"";position:absolute;left:-16px;top:50%;width:14px;height:3px;background:var(--line)}
+.block textarea{font:inherit;font-size:.84rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px 8px;resize:none;height:64px;width:100%}
+.block .h{font-family:var(--mono);font-size:.68rem;overflow-wrap:anywhere;color:var(--muted)}
+.block .h b{color:var(--fg);font-weight:500}
+
+/* YOLO */
+canvas{width:100%;height:auto;border-radius:12px;display:block;border:1px solid var(--line)}
+.dets{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:.8rem}
+.dets div{display:flex;justify-content:space-between;gap:8px;padding:4px 8px;border-radius:6px;background:var(--surface2)}
+
+/* Quiz */
+.q{display:flex;flex-direction:column;gap:8px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:6px}
+.opts button{text-align:left;border:1px solid var(--line);background:var(--surface2);border-radius:9px;padding:8px 12px}
+.opts button.right{border-color:var(--ok);color:var(--ok)} .opts button.wrong{border-color:var(--crit);color:var(--crit)}
+.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.links a{display:block;text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface2);color:var(--fg)}
+.links a:hover{border-color:var(--accent)}
+.links a b{display:block;color:var(--accent);font-family:var(--display)}
+.links a small{color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 5 9v10c0 9 6.2 15.6 15 18 8.800-2.400 15-9 15-18V9z" fill="none" stroke="var(--accent)" stroke-width="2.500"/><path d="M12 20h16M12 14.500h16M12 25.500h16" stroke="var(--amber)" stroke-width="2.500" stroke-linecap="round"/></svg>
+    <div><h1>CiberLab</h1><p>Simulador de ciberseguridad para colegio y empresa</p></div>
+  </div>
+  <div class="row"><span class="muted" style="font-size:.84rem">Escenario</span>
+    <div class="seg" id="scen"><button data-scen="colegio">Colegio</button><button data-scen="empresa">Empresa</button></div></div>
+</header>
+</div>
+<nav class="tabs" aria-label="Módulos"><div id="tabs"></div></nav>
+
+<main class="wrap">
+<section id="s-inicio">
+  <div class="hero">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <span class="eyebrow">Centro de operaciones de seguridad</span>
+      <h2>Defiende la red capa por capa, <em>del cable al cifrado</em>.</h2>
+      <p class="lead" id="home-scen"></p>
+      <div class="row"><button class="btn pri" data-go="osi">Empezar por el modelo OSI</button><button class="btn" data-go="quiz">Ir al reto</button></div>
+    </div>
+    <div class="panel">
+      <h3>Tu avance</h3>
+      <div class="meter"><i id="prog-bar" style="width:0"></i></div>
+      <p class="muted" id="prog-txt"></p>
+      <h3 style="margin-top:6px">Lo que proteges en este escenario</h3>
+      <ul class="clean" id="home-assets"></ul>
+    </div>
+  </div>
+  <div class="mods" id="mods"></div>
+</section>
+
+<section id="s-osi" hidden>
+  <div><span class="eyebrow">Capas 1 a 7</span><h2>Modelo OSI y su seguridad</h2></div>
+  <p class="lead">Cada capa tiene sus propias vulnerabilidades y sus propios controles. Elige una capa, activa su defensa y lanza un ataque para ver qué pasa.</p>
+  <div class="cols">
+    <div class="panel">
+      <div class="stack" id="osi-stack"></div>
+      <div class="row"><button class="btn pri" id="osi-send">Enviar un mensaje</button><button class="btn" id="osi-audit">Auditar las 7 capas</button></div>
+      <div><span class="eyebrow">Encapsulación</span><div class="pdu" id="osi-pdu" style="margin-top:6px"></div></div>
+    </div>
+    <div class="panel" id="osi-detail"></div>
+  </div>
+</section>
+
+<section id="s-malware" hidden>
+  <div><span class="eyebrow">Laboratorio de propagación</span><h2>Tipos de malware</h2></div>
+  <p class="lead">Elige una amenaza y obsérvala moverse por una red de 48 equipos. Después activa defensas y compara el resultado.</p>
+  <div class="mwtypes" id="mw-types"></div>
+  <div class="cols">
+    <div class="panel" id="mw-info"></div>
+    <div class="panel">
+      <div class="net" id="mw-net"></div>
+      <div class="segs" id="mw-segs"></div>
+      <div class="legend"><span><i style="background:var(--surface2)"></i>Limpio</span><span><i style="background:var(--crit)"></i>Infectado</span><span><i style="background:var(--fg)"></i>Cifrado</span><span><i style="background:var(--ok)"></i>Desinfectado</span></div>
+      <div class="row">
+        <label class="tog"><input type="checkbox" id="mw-av">Antivirus / EDR</label>
+        <label class="tog"><input type="checkbox" id="mw-patch">Parches al día</label>
+        <label class="tog"><input type="checkbox" id="mw-seg">Red segmentada</label>
+        <label class="tog"><input type="checkbox" id="mw-edu">Usuarios capacitados</label>
+      </div>
+      <div class="row"><button class="btn pri" id="mw-start">Liberar en la red</button><button class="btn" id="mw-reset">Reiniciar</button></div>
+      <div class="log" id="mw-log"></div>
+    </div>
+  </div>
+</section>
+
+<section id="s-so" hidden>
+  <div><span class="eyebrow">Windows · macOS · Linux</span><h2>Sistemas operativos frente a las amenazas</h2></div>
+  <p class="lead">Ningún sistema es inmune. Cambia qué tan atacado es, cómo entra la amenaza y qué herramientas trae para defenderse. Toca una fila para ver el porqué.</p>
+  <div class="panel">
+    <div class="tblwrap"><table id="so-table"></table></div>
+    <div class="log" id="so-why"></div>
+    <p class="muted" style="font-size:.8rem">Valoración orientativa para uso educativo: el impacto real depende de la versión, los parches y los hábitos de cada persona.</p>
+  </div>
+  <div class="row"><span class="muted">Endurecer:</span><div class="seg" id="so-pick"></div></div>
+  <div class="cols">
+    <div class="panel" id="so-card"></div>
+    <div class="panel"><h3>Lista de endurecimiento</h3><div class="checks" id="so-checks"></div>
+      <div class="meter"><i id="so-meter" style="width:0"></i></div><div id="so-verdict"></div></div>
+  </div>
+</section>
+
+<section id="s-siem" hidden>
+  <div><span class="eyebrow">Detección y respuesta</span><h2>Panel SIEM y SOAR</h2></div>
+  <p class="lead">El SIEM reúne los registros de toda la red y genera alertas. El SOAR responde con guías automáticas (playbooks). Atiende cada alerta con el playbook correcto o deja que el SOAR lo haga.</p>
+  <div class="kpis" id="siem-kpis"></div>
+  <div class="row"><label class="tog"><input type="checkbox" id="soar-auto">SOAR en automático</label><button class="btn" id="siem-pause">Pausar eventos</button><button class="btn" id="siem-clear">Limpiar panel</button></div>
+  <div class="cols">
+    <div class="panel"><h3>SIEM · eventos en vivo</h3><div class="stream" id="siem-stream"></div>
+      <h3>Eventos por capa OSI</h3><div class="bars" id="siem-bars"></div></div>
+    <div class="panel"><h3>SOAR · alertas por atender</h3><div id="siem-alerts" style="display:flex;flex-direction:column;gap:8px"></div></div>
+  </div>
+</section>
+
+<section id="s-backups" hidden>
+  <div><span class="eyebrow">Continuidad</span><h2>Copias de seguridad y RAID</h2></div>
+  <p class="lead">Una copia que nunca se ha probado es una esperanza. Compara tipos de copia, decide dónde guardarlas y rompe discos de un RAID.</p>
+  <div class="cols">
+    <div class="panel">
+      <h3>Tipos de copia en una semana</h3>
+      <div class="seg" id="bk-type"></div>
+      <div class="week" id="bk-week"></div>
+      <label for="bk-day" class="muted" style="font-size:.86rem">El servidor falla el día: <b id="bk-daylbl" style="color:var(--fg)"></b></label>
+      <input type="range" id="bk-day" min="1" max="6" value="4">
+      <div class="log" id="bk-out"></div>
+    </div>
+    <div class="panel">
+      <h3>Dónde guardas las copias</h3>
+      <div class="checks" id="bk-loc"></div>
+      <div id="bk-321"></div>
+      <h3>Prueba de desastre</h3>
+      <div class="row" id="bk-inc"></div>
+      <div class="log" id="bk-incout"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Simulador de RAID</h3>
+    <div class="seg" id="raid-type"></div>
+    <p class="muted" id="raid-desc"></p>
+    <div class="disks" id="raid-disks"></div>
+    <div id="raid-out"></div>
+    <p class="muted" style="font-size:.84rem">Toca un disco para dañarlo o repararlo. Recuerda: un RAID protege ante fallos de disco, pero no reemplaza una copia de seguridad. Un ransomware cifra todos los discos del RAID a la vez.</p>
+  </div>
+</section>
+
+<section id="s-blockchain" hidden>
+  <div><span class="eyebrow">Integridad de los datos</span><h2>Blockchain en bancos, colegio y empresa</h2></div>
+  <p class="lead">Cada bloque guarda el hash del anterior. Cambia el texto de cualquier bloque y verás romperse la cadena. Los hashes son SHA-256 reales calculados en tu navegador.</p>
+  <div class="chain" id="bc-chain"></div>
+  <div class="cols">
+    <div class="panel">
+      <h3>Nueva transacción</h3>
+      <div class="row"><input type="text" id="bc-from" aria-label="Origen" style="flex:1"><input type="text" id="bc-to" aria-label="Destino" style="flex:1"><input type="text" id="bc-val" aria-label="Detalle" style="flex:1"></div>
+      <div class="row"><button class="btn pri" id="bc-add">Minar y añadir bloque</button><button class="btn" id="bc-fix">Volver a minar todo</button><button class="btn" id="bc-reset">Restaurar cadena</button></div>
+      <div id="bc-net"></div>
+    </div>
+    <div class="panel" id="bc-uses"></div>
+  </div>
+</section>
+
+<section id="s-yolo" hidden>
+  <div><span class="eyebrow">Visión por computador</span><h2>YOLO en la portería</h2></div>
+  <p class="lead">YOLO (You Only Look Once) mira la imagen una sola vez, la divide en una rejilla y predice cajas con una clase y un nivel de confianza. Esta es una simulación didáctica de ese proceso sobre una escena dibujada.</p>
+  <div class="cols">
+    <div class="panel">
+      <canvas id="yolo-cv" width="720" height="400" aria-label="Escena de portería con detecciones"></canvas>
+      <label for="yolo-thr" class="muted" style="font-size:.86rem">Umbral de confianza: <b id="yolo-thrlbl" style="color:var(--fg)"></b></label>
+      <input type="range" id="yolo-thr" min="5" max="95" value="50">
+      <div class="row">
+        <label class="tog"><input type="checkbox" id="yolo-grid">Ver rejilla</label>
+        <label class="tog"><input type="checkbox" id="yolo-nms" checked>Supresión de duplicados (NMS)</label>
+        <label class="tog"><input type="checkbox" id="yolo-adv">Parche adversario</label>
+        <label class="tog"><input type="checkbox" id="yolo-blur">Difuminar rostros y placa</label>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Detecciones</h3><div class="dets" id="yolo-dets"></div>
+      <h3>Control de acceso por placa</h3>
+      <div class="row"><label for="yolo-plate" class="muted">Vehículo que llega</label><select id="yolo-plate"></select></div>
+      <div id="yolo-access"></div>
+      <button class="btn" id="yolo-siem">Enviar evento al SIEM</button>
+      <div class="log" id="yolo-log"></div>
+      <h3>Riesgos de seguridad de este sistema</h3>
+      <ul class="clean" style="--mk:var(--amber)">
+        <li>Cámaras IP con contraseña de fábrica o firmware viejo: son la puerta de entrada de botnets como Mirai.</li>
+        <li>Parches adversarios: un dibujo impreso puede hacer que el modelo deje de ver a una persona.</li>
+        <li>Datos personales: rostros y placas están protegidos en Colombia por la Ley 1581 de 2012. Se deben cifrar, limitar su acceso y avisar que se graba.</li>
+        <li>Envenenamiento del modelo: si alguien altera las imágenes de entrenamiento, el sistema aprende mal.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="s-quiz" hidden>
+  <div><span class="eyebrow">Reto y exploración</span><h2>Pon a prueba lo aprendido</h2></div>
+  <div class="panel"><div class="row" style="justify-content:space-between"><h3 id="quiz-score"></h3><button class="btn sm" id="quiz-reset">Reiniciar reto</button></div><div class="meter"><i id="quiz-bar" style="width:0"></i></div></div>
+  <div id="quiz-list" style="display:flex;flex-direction:column;gap:14px"></div>
+  <div class="panel"><h3>Preguntas para investigar en equipo</h3><ul class="clean" id="quiz-open" style="--mk:var(--violet)"></ul></div>
+  <div><h3 style="margin-bottom:10px">Enlaces para seguir explorando</h3><div class="links" id="quiz-links"></div></div>
+</section>
+</main>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store={get(k,d){try{const v=localStorage.getItem('cl_'+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('cl_'+k,JSON.stringify(v))}catch(e){}}};
+let scen=store.get('scen','colegio');
+const S=(o)=>typeof o==='string'?o:o[scen];
+
+/* ---------- Navegación ---------- */
+const TABS=[['inicio','Inicio'],['osi','Modelo OSI'],['malware','Malware'],['so','Sistemas operativos'],['siem','SIEM y SOAR'],['backups','Backups y RAID'],['blockchain','Blockchain'],['yolo','YOLO'],['quiz','Reto y enlaces']];
+const MODS=[['osi','7 capas','Modelo OSI','Vulnerabilidades y defensas desde la capa física hasta la de aplicación.'],
+['malware','9 amenazas','Malware','Virus, gusanos, troyanos y ransomware propagándose en vivo.'],
+['so','3 sistemas','Sistemas operativos','Windows, macOS y Linux frente a cada amenaza.'],
+['siem','En vivo','SIEM y SOAR','Detecta eventos y responde con playbooks.'],
+['backups','3-2-1','Backups y RAID','Copias internas, en la nube y discos que fallan.'],
+['blockchain','SHA-256','Blockchain','Transacciones bancarias y registros que no se pueden alterar.'],
+['yolo','Visión','YOLO','Detección de personas, autos y placas, con sus riesgos.'],
+['quiz','10 preguntas','Reto y enlaces','Mide lo aprendido y sigue explorando.']];
+let visited=new Set(store.get('visited',[])), tab='inicio';
+$('#tabs').innerHTML=TABS.map(([id,n])=>`<button data-tab="${id}">${n}</button>`).join('');
+$('#mods').innerHTML=MODS.map(([id,tag,n,d])=>`<button class="mod" data-go="${id}"><span class="chip">${tag}</span><b>${n}</b><small>${d}</small></button>`).join('');
+function go(id){
+  if(!TABS.some(t=>t[0]===id)) id='inicio';
+  tab=id; TABS.forEach(([t])=>{$('#s-'+t).hidden=t!==id});
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
+  const act=$('#tabs button.on'); if(act&&act.scrollIntoView) act.scrollIntoView({block:'nearest',inline:'center'});
+  if(id!=='inicio'){visited.add(id);store.set('visited',[...visited])}
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+  if(id==='blockchain') bcInit();
+  if(id==='yolo') drawYolo();
+  renderHome(); window.scrollTo(0,0);
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab],[data-go]'); if(t) go(t.dataset.tab||t.dataset.go);
+  const s=e.target.closest('[data-scen]'); if(s){scen=s.dataset.scen;store.set('scen',scen);renderScen()}
+});
+const ASSETS={colegio:['Plataforma de notas y matrículas','Sala de informática y tabletas de aula','WiFi de estudiantes y de docentes','Cámaras de portería y pasillos','Datos personales de menores de edad'],
+ empresa:['Servidor de nómina y contabilidad','Base de datos de clientes','VPN para teletrabajo y correo corporativo','Cámaras y control de acceso al parqueadero','Pagos y transferencias bancarias']};
+function renderHome(){
+  $('#home-scen').textContent=scen==='colegio'?'Eres parte del equipo de tecnología de un colegio. Tu misión es cuidar las notas, la red de las aulas y los datos de los estudiantes.':'Eres analista de seguridad en una empresa. Tu misión es proteger la nómina, los datos de los clientes y las operaciones con el banco.';
+  $('#home-assets').innerHTML=ASSETS[scen].map(a=>`<li>${a}</li>`).join('');
+  const n=MODS.filter(m=>visited.has(m[0])).length;
+  $('#prog-bar').style.width=(n/MODS.length*100)+'%';
+  $('#prog-txt').textContent=`${n} de ${MODS.length} módulos explorados · mejor puntaje del reto: ${store.get('best',0)}/10`;
+}
+function renderScen(){
+  $$('#scen button').forEach(b=>b.classList.toggle('on',b.dataset.scen===scen));
+  renderHome(); renderOsi(); renderMwSegs(); siemReset(); bcReady=false; if(tab==='blockchain') bcInit(); renderBcUses();
+}
+
+/* ---------- OSI ---------- */
+const OSI=[
+{n:7,name:'Aplicación',pdu:'Datos',h:345,fn:'Es lo que usa la persona: navegador, correo, plataformas web.',proto:'HTTP, HTTPS, DNS, SMTP, FTP',
+ vul:['Phishing y robo de contraseñas','Inyección SQL y XSS en formularios web','Suplantación de DNS','Software sin actualizar'],def:['Autenticación de dos factores','Firewall de aplicaciones web (WAF)','Filtro de correo y validación de entradas','Parches al día'],
+ atk:'un correo de phishing con enlace a una página falsa',ctrl:'El filtro de correo y el segundo factor',ej:{colegio:'Un estudiante recibe un correo falso de "la plataforma de notas" y entrega su contraseña.',empresa:'Contabilidad recibe una factura falsa con un enlace que roba el acceso al banco.'}},
+{n:6,name:'Presentación',pdu:'Datos',h:25,fn:'Traduce, comprime y cifra los datos para que ambos extremos los entiendan.',proto:'TLS/SSL, JPEG, PNG, UTF-8',
+ vul:['SSL stripping: degradar HTTPS a HTTP','Cifrados débiles u obsoletos','Certificados falsos o vencidos','Archivos malformados que explotan el lector'],def:['TLS 1.3 y HSTS','Validar siempre el certificado','Desactivar protocolos antiguos','Abrir archivos en visores actualizados'],
+ atk:'un SSL stripping que quita el cifrado de la conexión',ctrl:'TLS 1.3 con HSTS',ej:{colegio:'En el WiFi del colegio alguien fuerza la plataforma a cargar sin candado y lee las contraseñas.',empresa:'Un empleado acepta un certificado falso en un café y expone la sesión del ERP.'}},
+{n:5,name:'Sesión',pdu:'Datos',h:50,fn:'Abre, mantiene y cierra la conversación entre dos equipos.',proto:'RPC, NetBIOS, SMB, tokens de sesión',
+ vul:['Secuestro de sesión (session hijacking)','Fijación de sesión','Reenvío de mensajes capturados (replay)','Sesiones que nunca caducan'],def:['Tokens aleatorios y de un solo uso','Cierre automático por inactividad','Volver a pedir clave para acciones sensibles'],
+ atk:'el robo de una cookie de sesión abierta',ctrl:'El token con caducidad corta',ej:{colegio:'Un docente deja la sesión abierta en la sala de informática y otra persona cambia notas.',empresa:'Roban la cookie de sesión de un gerente y entran al correo sin contraseña.'}},
+{n:4,name:'Transporte',pdu:'Segmento',h:140,fn:'Entrega los datos de extremo a extremo y usa puertos para cada servicio.',proto:'TCP, UDP',
+ vul:['Inundación SYN (denegación de servicio)','Escaneo de puertos','Inundación UDP','Puertos abiertos sin necesidad'],def:['Firewall con estado','SYN cookies y límite de conexiones','Cerrar puertos que no se usan'],
+ atk:'una inundación SYN contra el servidor',ctrl:'El firewall con SYN cookies',ej:{colegio:'El día de entrega de boletines, una inundación SYN tumba la plataforma.',empresa:'Un escaneo encuentra el escritorio remoto (puerto 3389) abierto a internet.'}},
+{n:3,name:'Red',pdu:'Paquete',h:185,fn:'Direcciona y enruta los paquetes entre redes distintas.',proto:'IP, ICMP, routers, IPsec',
+ vul:['Suplantación de IP','Inundación ICMP (ping flood)','Secuestro de rutas','Redes planas sin segmentar'],def:['Listas de control de acceso (ACL)','VPN con IPsec','Segmentar en subredes y VLAN','Filtros contra suplantación'],
+ atk:'paquetes con dirección IP suplantada',ctrl:'La ACL del router',ej:{colegio:'Desde el WiFi de estudiantes se alcanza el servidor de secretaría porque no hay subredes separadas.',empresa:'Un atacante finge ser una IP interna para saltarse un filtro.'}},
+{n:2,name:'Enlace de datos',pdu:'Trama',h:225,fn:'Mueve tramas entre equipos de la misma red local con direcciones MAC.',proto:'Ethernet, WiFi 802.11, ARP, switches',
+ vul:['Suplantación ARP (hombre en el medio)','Saturación de la tabla MAC del switch','Salto de VLAN','Punto de acceso WiFi falso'],def:['Seguridad de puerto en el switch','Inspección dinámica de ARP','802.1X y WPA3'],
+ atk:'una suplantación ARP para ponerse en medio del tráfico',ctrl:'La inspección dinámica de ARP',ej:{colegio:'Alguien crea un WiFi llamado "Colegio_Gratis" y los estudiantes se conectan a él.',empresa:'Un portátil infectado envenena el ARP y captura el tráfico de la oficina.'}},
+{n:1,name:'Física',pdu:'Bits',h:275,fn:'Transmite bits como señales eléctricas, de luz o de radio.',proto:'Cable UTP, fibra, radio, conectores',
+ vul:['Acceso al cuarto de equipos','USB malicioso o keylogger físico','Pinchar o cortar cables','Interferencia de la señal (jamming)','Cortes de energía'],def:['Racks y cuartos con llave','Cámaras y registro de visitas','Bloqueo de puertos USB','UPS y respaldo eléctrico'],
+ atk:'una memoria USB desconocida conectada a un equipo',ctrl:'El bloqueo de puertos USB',ej:{colegio:'Aparece una USB "olvidada" en la sala de profesores y alguien la conecta.',empresa:'Un visitante entra sin registro al cuarto de servidores, que estaba sin llave.'}}];
+let osiSel=7, osiDef={}, osiFlow=0, osiLog=[];
+function renderOsi(){
+  $('#osi-stack').innerHTML=OSI.map(L=>`<button class="layer ${L.n===osiSel?'on':''} ${osiFlow===L.n?'flow':''}" style="--h:${L.h}" data-layer="${L.n}"><span class="ln">${L.n}</span><span class="lname">${L.name}<small>${L.pdu}</small></span><span class="chip ${osiDef[L.n]?'ok':'crit'}">${osiDef[L.n]?'Protegida':'Expuesta'}</span></button>`).join('');
+  const L=OSI.find(l=>l.n===osiSel);
+  $('#osi-detail').innerHTML=`<div><span class="eyebrow">Capa ${L.n} · ${L.proto}</span><h3 style="font-size:1.4rem;margin-top:4px">${L.name}</h3></div>
+   <p>${L.fn}</p>
+   <div class="cols" style="gap:12px"><div><h3 style="margin-bottom:6px">Vulnerabilidades</h3><ul class="clean" style="--mk:var(--crit)">${L.vul.map(v=>`<li>${v}</li>`).join('')}</ul></div>
+   <div><h3 style="margin-bottom:6px">Seguridad que debe existir</h3><ul class="clean" style="--mk:var(--ok)">${L.def.map(v=>`<li>${v}</li>`).join('')}</ul></div></div>
+   <p class="muted"><b style="color:var(--fg)">En tu ${scen}:</b> ${L.ej[scen]}</p>
+   <div class="row"><label class="tog"><input type="checkbox" id="osi-def" ${osiDef[L.n]?'checked':''}>Defensa activa en esta capa</label><button class="btn pri" id="osi-atk">Lanzar ataque</button></div>
+   <div class="log" id="osi-log">${osiLog.length?osiLog.join(''):'<span class="muted">Aquí verás el resultado de los ataques.</span>'}</div>`;
+}
+function osiAttack(L){return osiDef[L.n]?`<span class="ok">Capa ${L.n} · Bloqueado. ${L.ctrl} detuvo ${L.atk}.</span>`:`<span class="crit">Capa ${L.n} · Comprometida por ${L.atk}.</span>`}
+const PDU={7:['Datos'],6:['Datos cifrados'],5:['Sesión','Datos cifrados'],4:['TCP','Sesión','Datos cifrados'],3:['IP','TCP','Sesión','Datos cifrados'],2:['MAC','IP','TCP','Sesión','Datos cifrados','FCS'],1:['0101 1100 1010 0111 0010 1101 …']};
+function showPdu(n){$('#osi-pdu').innerHTML=PDU[n].map(p=>`<span class="${/Datos|0101/.test(p)?'d':''}">${p}</span>`).join('')}
+$('#s-osi').addEventListener('click',e=>{
+  const l=e.target.closest('[data-layer]'); if(l){osiSel=+l.dataset.layer;osiLog=[];showPdu(osiSel);renderOsi();return}
+  if(e.target.id==='osi-atk'){osiLog=[osiAttack(OSI.find(l=>l.n===osiSel))];renderOsi()}
+  if(e.target.id==='osi-audit'){osiLog=OSI.map(osiAttack);const ok=OSI.filter(L=>osiDef[L.n]).length;osiLog.push(`<span class="${ok===7?'ok':'warn'}">${ok} de 7 capas resistieron. ${ok===7?'Defensa en profundidad completa.':'Basta una capa expuesta para que el atacante entre.'}</span>`);renderOsi()}
+  if(e.target.id==='osi-send'){let i=0;const seq=[7,6,5,4,3,2,1];const step=()=>{if(i>=seq.length){osiFlow=0;renderOsi();return}osiFlow=seq[i];showPdu(seq[i]);renderOsi();i++;setTimeout(step,520)};step()}
+});
+$('#s-osi').addEventListener('change',e=>{if(e.target.id==='osi-def'){osiDef[osiSel]=e.target.checked;renderOsi()}});
+
+/* ---------- Malware ---------- */
+const MW=[
+{id:'virus',name:'Virus',d:'Se pega a un archivo o programa y se activa cuando alguien lo abre.',ej:'CIH "Chernobyl" (1998), virus de macros en documentos',sig:'Archivos dañados, programas que fallan al abrir',nb:.14,rnd:.01,det:.45,user:true},
+{id:'gusano',name:'Gusano',d:'Se copia solo de un equipo a otro aprovechando fallos de la red. No necesita que nadie haga clic.',ej:'Conficker (2008), Stuxnet (2010)',sig:'Red lenta, mucho tráfico sin explicación',nb:.42,rnd:0,det:.3,patch:true},
+{id:'troyano',name:'Troyano',d:'Se disfraza de programa útil o de archivo adjunto. Una vez dentro, abre la puerta al atacante.',ej:'Zeus (banca), Emotet',sig:'Programas que no instalaste, conexiones extrañas',nb:.03,rnd:.05,det:.35,user:true},
+{id:'ransom',name:'Ransomware',d:'Cifra los archivos y exige un pago para devolverlos.',ej:'WannaCry (2017), LockBit',sig:'Archivos con extensiones raras y una nota de rescate',nb:.28,rnd:.01,det:.28,patch:true,enc:true},
+{id:'spy',name:'Spyware y keylogger',d:'Espía lo que haces y registra lo que tecleas para robar claves.',ej:'Pegasus, Agent Tesla',sig:'Casi ninguna: está hecho para no notarse',nb:.02,rnd:.05,det:.18,user:true},
+{id:'rootkit',name:'Rootkit',d:'Se esconde en lo más profundo del sistema operativo y oculta a otros programas maliciosos.',ej:'Rootkit de Sony BMG (2005), ZeroAccess',sig:'El antivirus se desactiva solo',nb:.05,rnd:.03,det:.07},
+{id:'botnet',name:'Botnet',d:'Convierte los equipos en "zombis" que obedecen a un atacante, por ejemplo para ataques de denegación de servicio.',ej:'Mirai (2016), con cámaras y routers',sig:'Equipo lento, tráfico de salida constante',nb:.3,rnd:.01,det:.3,patch:true},
+{id:'adware',name:'Adware',d:'Llena el equipo de publicidad y cambia el buscador. Suele llegar con programas gratuitos.',ej:'Fireball (2017)',sig:'Ventanas emergentes y barras nuevas en el navegador',nb:0,rnd:.07,det:.7,user:true},
+{id:'fileless',name:'Sin archivos',d:'Vive en la memoria y usa herramientas legítimas del sistema, como PowerShell. No deja archivos que analizar.',ej:'Campañas con PowerShell y macros',sig:'Procesos del sistema con comportamiento inusual',nb:.16,rnd:.02,det:.12}];
+const SEGS={colegio:['Aulas','Administración','Servidores'],empresa:['Oficinas','Finanzas','Servidores']};
+let mw={type:'gusano',nodes:[],timer:null,t:0};
+function renderMwSegs(){$('#mw-segs').innerHTML=SEGS[scen].map(s=>`<span>${s}</span>`).join('')}
+function renderMw(){
+  $('#mw-types').innerHTML=MW.map(m=>`<button class="${m.id===mw.type?'on':''}" data-mw="${m.id}">${m.name}</button>`).join('');
+  const T=MW.find(m=>m.id===mw.type);
+  $('#mw-info').innerHTML=`<h3 style="font-size:1.4rem">${T.name}</h3><p>${T.d}</p>
+   <ul class="clean"><li><b>Casos conocidos:</b> ${T.ej}</li><li><b>Señales:</b> ${T.sig}</li>
+   <li><b>Cómo se mueve:</b> ${T.nb>=.25?'salta solo entre equipos vecinos':T.rnd>=.04?'entra cuando alguien lo descarga o lo abre':'avanza despacio y sin ruido'}</li>
+   <li><b>Qué tan fácil lo detecta un antivirus:</b> ${T.det>=.4?'fácil':T.det>=.2?'difícil':'muy difícil'}</li></ul>
+   <div class="row">${T.patch?'<span class="chip ok">Lo frenan los parches</span>':''}${T.user?'<span class="chip warn">Necesita un clic humano</span>':''}${T.enc?'<span class="chip crit">Cifra los datos</span>':''}</div>`;
+}
+function drawMw(){$('#mw-net').innerHTML=mw.nodes.map(n=>`<div class="node s${n.s}"></div>`).join('')}
+function mwReset(){clearInterval(mw.timer);mw.timer=null;mw.t=0;mw.nodes=Array.from({length:48},()=>({s:0,age:0}));drawMw();$('#mw-log').innerHTML='<span class="muted">Red limpia. El paciente cero será un equipo de la primera zona.</span>'}
+const seg=i=>Math.floor((i%12)/4);
+function nbrs(i){const r=Math.floor(i/12),c=i%12,o=[];if(c>0)o.push(i-1);if(c<11)o.push(i+1);if(r>0)o.push(i-12);if(r<3)o.push(i+12);return o}
+function mwTick(){
+  const T=MW.find(m=>m.id===mw.type),d={av:$('#mw-av').checked,patch:$('#mw-patch').checked,seg:$('#mw-seg').checked,edu:$('#mw-edu').checked};
+  let nb=T.nb,rnd=T.rnd; if(d.patch&&T.patch)nb*=.12; if(d.edu){rnd*=.25;if(T.user)nb*=.3}
+  const next=mw.nodes.map(n=>({...n}));
+  mw.nodes.forEach((n,i)=>{
+    if(n.s===1){next[i].age++;
+      if(d.av&&Math.random()<T.det){next[i].s=3;return}
+      if(T.enc&&next[i].age>=5){next[i].s=2}
+      nbrs(i).forEach(j=>{if(mw.nodes[j].s===0&&!(d.seg&&seg(i)!==seg(j))&&Math.random()<nb)next[j].s=1});
+    }else if(n.s===0&&rnd&&Math.random()<rnd)next[i].s=1;
+  });
+  mw.nodes=next;mw.t++;drawMw();
+  const inf=next.filter(n=>n.s===1).length,enc=next.filter(n=>n.s===2).length,cl=next.filter(n=>n.s===3).length;
+  $('#mw-log').innerHTML=`<span>t=${mw.t} · infectados ${inf} · cifrados ${enc} · desinfectados ${cl}</span>`;
+  if(inf===0||mw.t>=40){clearInterval(mw.timer);mw.timer=null;const hit=inf+enc;
+    $('#mw-log').innerHTML+=`<span class="${hit>24?'crit':hit>6?'warn':'ok'}">Fin: ${hit} de 48 equipos quedaron afectados${enc?` y ${enc} perdieron sus archivos`:''}. ${hit>24?'Prueba a activar más defensas.':hit>6?'Contenido a medias: combina defensas.':'Amenaza contenida.'}</span>`}
+}
+$('#s-malware').addEventListener('click',e=>{
+  const b=e.target.closest('[data-mw]');if(b){mw.type=b.dataset.mw;renderMw();mwReset()}
+  if(e.target.id==='mw-reset')mwReset();
+  if(e.target.id==='mw-start'&&!mw.timer){if(mw.t>0)mwReset();mw.nodes[13].s=1;drawMw();mw.timer=setInterval(mwTick,420)}
+});
+
+/* ---------- Sistemas operativos ---------- */
+const THREATS=[
+['Virus','Alto','Bajo','Bajo','Windows es el más usado en escritorios, así que la mayoría de virus se escriben para él. En macOS y Linux los permisos y las tiendas de software reducen el riesgo, pero existen.'],
+['Gusanos','Alto','Bajo','Medio','Los grandes gusanos (Conficker, WannaCry) explotaron servicios de red de Windows. En Linux atacan sobre todo servidores, routers y cámaras, como hizo Mirai.'],
+['Troyanos','Alto','Medio','Medio','El troyano engaña a la persona, no al sistema. Programas pirata y adjuntos funcionan en los tres. En macOS han crecido los que roban contraseñas guardadas.'],
+['Ransomware','Alto','Medio','Medio','La mayoría apunta a Windows, pero hay variantes para servidores Linux y de virtualización, donde el daño es enorme. En macOS es menos común.'],
+['Spyware y keyloggers','Alto','Medio','Bajo','Los ladrones de información abundan en Windows y van en aumento en macOS. En Linux de escritorio son raros, aunque posibles.'],
+['Rootkits','Medio','Bajo','Medio','Arranque seguro y protección del núcleo los dificultan en Windows y macOS. En servidores Linux mal administrados siguen apareciendo.'],
+['Criptomineros','Medio','Medio','Alto','Buscan potencia de cálculo: los servidores Linux y los contenedores en la nube son su objetivo favorito.'],
+['Phishing','Alto','Alto','Alto','No depende del sistema operativo sino de la persona. Una página falsa se ve igual en cualquier equipo.']];
+const OSD={
+win:{name:'Windows',ver:'Windows 10 y 11, Windows Server',note:'Es el sistema más usado en colegios y oficinas, y por eso el más atacado.',tools:['Microsoft Defender (antivirus)','Firewall de Windows','BitLocker (cifrado de disco)','SmartScreen y Control de cuentas (UAC)','Windows Update'],
+ checks:['Actualizaciones automáticas de Windows Update','Microsoft Defender activo con protección contra alteraciones','Disco cifrado con BitLocker','Cuenta estándar para el día a día, no de administrador','Firewall de Windows activo en todas las redes','Acceso controlado a carpetas contra ransomware']},
+mac:{name:'macOS',ver:'macOS en MacBook, iMac y Mac mini',note:'Menos atacado, pero no inmune: los ladrones de contraseñas para Mac van en aumento.',tools:['Gatekeeper (verifica las apps)','XProtect (antimalware integrado)','FileVault (cifrado de disco)','Protección de integridad del sistema (SIP)','Firewall de macOS'],
+ checks:['Actualizaciones automáticas del sistema','Gatekeeper: solo App Store y desarrolladores identificados','Disco cifrado con FileVault','Firewall de macOS activado','Protección de integridad del sistema (SIP) sin desactivar','Cuenta estándar para el uso diario']},
+lin:{name:'Linux',ver:'Ubuntu, Debian, Fedora, y Kali para prácticas de seguridad',note:'Domina en servidores y en la nube. Ahí es donde lo buscan los atacantes.',tools:['Permisos de usuario y sudo','SELinux o AppArmor','Firewall ufw o firewalld','LUKS (cifrado de disco)','ClamAV y auditoría con Lynis'],
+ checks:['Actualizaciones de seguridad automáticas (apt o dnf)','Firewall ufw o firewalld activo','SELinux o AppArmor en modo obligatorio','SSH con llaves y sin acceso directo de root','Disco cifrado con LUKS','Software solo de repositorios oficiales']}};
+let soSel='win', soThreat=0, soChk={win:[],mac:[],lin:[]};
+function renderSo(){
+  $('#so-table').innerHTML=`<tr><th>Amenaza</th><th>Windows</th><th>macOS</th><th>Linux</th></tr>`+THREATS.map((t,i)=>`<tr class="${i===soThreat?'on':''}" data-thr="${i}" style="cursor:pointer"><td><button>${t[0]}</button></td>${[1,2,3].map(k=>`<td><span class="lvl ${t[k]}">${t[k]}</span></td>`).join('')}</tr>`).join('');
+  $('#so-why').innerHTML=`<span><b>${THREATS[soThreat][0]}:</b> ${THREATS[soThreat][4]}</span>`;
+  $('#so-pick').innerHTML=Object.entries(OSD).map(([k,o])=>`<button class="${k===soSel?'on':''}" data-os="${k}">${o.name}</button>`).join('');
+  const o=OSD[soSel];
+  $('#so-card').innerHTML=`<div><span class="eyebrow">${o.ver}</span><h3 style="font-size:1.4rem;margin-top:4px">${o.name}</h3></div><p>${o.note}</p><h3>Defensas que ya trae</h3><ul class="clean" style="--mk:var(--ok)">${o.tools.map(t=>`<li>${t}</li>`).join('')}</ul>`;
+  $('#so-checks').innerHTML=o.checks.map((c,i)=>`<label><input type="checkbox" id="so-c-${soSel}-${i}" data-chk="${i}" ${soChk[soSel][i]?'checked':''}>${c}</label>`).join('');
+  const n=o.checks.filter((_,i)=>soChk[soSel][i]).length;
+  $('#so-meter').style.width=(n/6*100)+'%';
+  $('#so-verdict').innerHTML=`<div class="verdict ${n>=5?'ok':n>=3?'warn':'crit'}">${n} de 6 medidas · riesgo ${n>=5?'bajo':n>=3?'medio':'alto'}<span>${n>=5?'Equipo bien endurecido. Falta lo más importante: una persona atenta.':n>=3?'Vas bien, pero aún hay puertas abiertas.':'Así salen muchos equipos de la caja. Marca las medidas que aplicarías.'}</span></div>`;
+}
+$('#s-so').addEventListener('click',e=>{const r=e.target.closest('[data-thr]');if(r){soThreat=+r.dataset.thr;renderSo()}const o=e.target.closest('[data-os]');if(o){soSel=o.dataset.os;renderSo()}});
+$('#s-so').addEventListener('change',e=>{if(e.target.dataset.chk!==undefined){soChk[soSel][+e.target.dataset.chk]=e.target.checked;renderSo()}});
+
+/* ---------- SIEM / SOAR ---------- */
+const PB={bloquear:'Bloquear el origen',aislar:'Aislar el equipo',cred:'Restablecer credenciales',correo:'Retirar el correo'};
+const EV=[
+{m:'Veinte intentos fallidos de inicio de sesión en un minuto',src:{colegio:'Plataforma de notas',empresa:'VPN corporativa'},l:7,sev:'alta',pb:'bloquear'},
+{m:'Escaneo de puertos desde una IP externa',src:'Firewall',l:4,sev:'media',pb:'bloquear'},
+{m:'Suplantación ARP detectada',src:{colegio:'Switch sala de informática',empresa:'Switch piso 2'},l:2,sev:'alta',pb:'aislar'},
+{m:'Cifrado masivo de archivos (posible ransomware)',src:{colegio:'PC de secretaría',empresa:'Servidor de archivos'},l:7,sev:'critica',pb:'aislar'},
+{m:'Correo de phishing reportado por un usuario',src:'Servidor de correo',l:7,sev:'media',pb:'correo'},
+{m:'Conexión con certificado TLS inválido',src:'Proxy web',l:6,sev:'media',pb:'bloquear'},
+{m:'La misma cuenta inició sesión desde dos países',src:{colegio:'Cuenta de docente',empresa:'Cuenta de gerencia'},l:5,sev:'alta',pb:'cred'},
+{m:'Inundación SYN contra el servidor web',src:'Firewall',l:4,sev:'critica',pb:'bloquear'},
+{m:'USB desconocida conectada',src:{colegio:'PC sala de profesores',empresa:'PC de recepción'},l:1,sev:'media',pb:'aislar'},
+{m:'Tráfico hacia un servidor de comando y control',src:{colegio:'Portátil de aula 4',empresa:'Portátil de ventas'},l:3,sev:'critica',pb:'aislar'},
+{m:'Contraseña encontrada en una filtración pública',src:'Monitoreo de credenciales',l:7,sev:'alta',pb:'cred'},
+{m:'Inicio de sesión correcto',src:'Directorio',l:7,sev:'info'},{m:'Copia de seguridad nocturna completada',src:'Servidor de backups',l:7,sev:'info'},
+{m:'Actualización de seguridad instalada',src:'Gestor de parches',l:7,sev:'info'},{m:'Nuevo dispositivo unido a la red WiFi',src:'Controladora WiFi',l:2,sev:'info'},{m:'Ping de monitoreo respondido',src:'Router',l:3,sev:'info'}];
+const SEVC={media:'var(--warn)',alta:'var(--amber)',critica:'var(--crit)'};
+let siem={ev:[],al:[],lay:{},n:0,done:0,times:[],paused:false,id:0};
+function siemReset(){siem={ev:[],al:[],lay:{},n:0,done:0,times:[],paused:siem.paused,id:0};for(let i=0;i<5;i++)siemPush();renderSiem()}
+function siemPush(custom){
+  const e=custom||EV[Math.floor(Math.random()*EV.length)];
+  const now=new Date(),ev={m:e.m,src:S(e.src),l:e.l,sev:e.sev,pb:e.pb,t:now.toTimeString().slice(0,8),id:++siem.id,at:Date.now()};
+  siem.ev.unshift(ev);siem.ev=siem.ev.slice(0,9);siem.n++;siem.lay[e.l]=(siem.lay[e.l]||0)+1;
+  if(e.sev!=='info'){siem.al.unshift({...ev,st:'open',msg:''});
+    const open=siem.al.filter(a=>a.st==='open');if(open.length>6){const old=open[open.length-1];siem.al=siem.al.filter(a=>a!==old)}
+    siem.al=siem.al.filter((a,i)=>a.st==='open'||i<8);
+    if($('#soar-auto').checked)setTimeout(()=>siemResolve(ev.id,ev.pb,true),1400)}
+}
+function siemResolve(id,pb,auto){
+  const a=siem.al.find(x=>x.id===id);if(!a||a.st!=='open')return;
+  if(pb===a.pb){a.st='done';siem.done++;siem.times.push((Date.now()-a.at)/1000);a.msg=`${auto?'SOAR ejecutó':'Ejecutaste'}: ${PB[pb]} · ticket creado · equipo notificado`}
+  else a.msg=`"${PB[pb]}" no detiene esta amenaza. Piensa en qué hay que cortar primero.`;
+  renderSiem();
+}
+function renderSiem(){
+  const open=siem.al.filter(a=>a.st==='open').length,avg=siem.times.length?(siem.times.reduce((a,b)=>a+b,0)/siem.times.length).toFixed(1)+' s':'—';
+  $('#siem-kpis').innerHTML=[[siem.n,'Eventos recibidos'],[open,'Alertas abiertas'],[siem.done,'Incidentes contenidos'],[avg,'Tiempo medio de respuesta']].map(k=>`<div class="kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join('');
+  $('#siem-stream').innerHTML=siem.ev.map(e=>`<div><time>${e.t}</time><span class="sev ${e.sev}">${e.sev==='critica'?'crítica':e.sev}</span><span class="m">${esc(e.m)} <span class="muted">· ${esc(e.src)}</span></span></div>`).join('');
+  const mx=Math.max(1,...Object.values(siem.lay));
+  $('#siem-bars').innerHTML=OSI.map(L=>`<div><span>${L.n} ${L.name}</span><span><i style="width:${(siem.lay[L.n]||0)/mx*100}%"></i></span><b>${siem.lay[L.n]||0}</b></div>`).join('');
+  $('#siem-alerts').innerHTML=siem.al.length?siem.al.map(a=>`<div class="alert ${a.st}" style="--sc:${a.st==='done'?'var(--ok)':SEVC[a.sev]}"><div class="row"><span class="sev ${a.sev}">${a.sev==='critica'?'crítica':a.sev}</span><span class="chip">Capa ${a.l}</span><span class="muted mono">${a.t}</span></div><b>${esc(a.m)}</b><span class="muted" style="font-size:.84rem">${esc(a.src)}</span>
+    ${a.st==='open'?`<div class="row">${Object.entries(PB).map(([k,v])=>`<button class="btn sm" data-al="${a.id}" data-pb="${k}">${v}</button>`).join('')}</div>`:''}${a.msg?`<span class="mono" style="color:${a.st==='done'?'var(--ok)':'var(--warn)'}">${a.msg}</span>`:''}</div>`).join(''):'<p class="muted">Sin alertas por ahora.</p>';
+}
+$('#s-siem').addEventListener('click',e=>{
+  const b=e.target.closest('[data-al]');if(b)siemResolve(+b.dataset.al,b.dataset.pb,false);
+  if(e.target.id==='siem-pause'){siem.paused=!siem.paused;e.target.textContent=siem.paused?'Reanudar eventos':'Pausar eventos'}
+  if(e.target.id==='siem-clear')siemReset();
+});
+$('#soar-auto').addEventListener('change',e=>{if(e.target.checked)siem.al.filter(a=>a.st==='open').forEach((a,i)=>setTimeout(()=>siemResolve(a.id,a.pb,true),500+i*400))});
+setInterval(()=>{if(tab==='siem'&&!siem.paused&&!document.hidden){siemPush();renderSiem()}},2200);
+
+/* ---------- Backups ---------- */
+const BKT={completa:['Completa','Copia todo cada día. Restaurar es rápido, pero ocupa mucho espacio y tiempo.'],incremental:['Incremental','Copia solo lo que cambió desde la última copia. Ocupa poco, pero para restaurar necesitas toda la cadena.'],diferencial:['Diferencial','Copia lo que cambió desde la última copia completa. Punto medio entre las dos.']};
+const DAYS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let bkType='incremental';
+function renderBk(){
+  $('#bk-type').innerHTML=Object.entries(BKT).map(([k,v])=>`<button class="${k===bkType?'on':''}" data-bk="${k}">${v[0]}</button>`).join('');
+  const day=+$('#bk-day').value, size=i=>i===0?100:bkType==='completa'?100:bkType==='incremental'?10:10*i;
+  const need=i=>i<=day&&(bkType==='completa'?i===day:bkType==='incremental'?true:(i===0||i===day));
+  $('#bk-week').innerHTML=DAYS.map((d,i)=>`<div class="${need(i)?'need':''} ${i>day?'off':''}"><span>${size(i)} GB</span><i style="height:${size(i)*.9}%"></i><span>${d}</span></div>`).join('');
+  $('#bk-daylbl').textContent=DAYS[day];
+  const total=DAYS.reduce((a,_,i)=>a+size(i),0), n=DAYS.filter((_,i)=>need(i)).length;
+  $('#bk-out').innerHTML=`<span>${BKT[bkType][1]}</span><span>Espacio en la semana: <b>${total} GB</b></span><span class="${n>3?'warn':'ok'}">Para restaurar el ${DAYS[day]} necesitas ${n} ${n===1?'copia':'copias'} (en ámbar)${bkType==='incremental'?'. Si una de la cadena se daña, pierdes lo que sigue.':'.'}</span>`;
+}
+const LOC=[['int','Otra carpeta o disco dentro del mismo equipo','Copia interna: rápida, pero cae junto con el equipo.'],['nas','Disco externo o NAS en el mismo edificio','Copia local: buena velocidad, vulnerable a robo, incendio y ransomware en red.'],['nube','Servicio en la nube con versiones','Fuera del sitio y con historial. Depende de internet y de una cuenta bien protegida.'],['off','Disco desconectado guardado en otro lugar','Copia fuera de línea: el ransomware no puede alcanzarla.']];
+const INC={borrado:['Borrado accidental',['int','nas','nube','off']],disco:['Falla el disco',['nas','nube','off']],ransom:['Ransomware',['nube','off']],fuego:['Incendio o robo',['nube','off']]};
+let bkLoc={int:true};
+function renderBkLoc(){
+  $('#bk-loc').innerHTML=LOC.map(l=>`<label><input type="checkbox" id="bk-l-${l[0]}" data-loc="${l[0]}" ${bkLoc[l[0]]?'checked':''}><span><b>${l[1]}</b><br><span class="muted" style="font-size:.84rem">${l[2]}</span></span></label>`).join('');
+  const sel=LOC.filter(l=>bkLoc[l[0]]).map(l=>l[0]), copies=1+sel.length, media=new Set(['equipo',...sel.map(s=>s==='int'?'equipo':s)]).size, offsite=sel.includes('nube')||sel.includes('off');
+  const ok=copies>=3&&media>=2&&offsite;
+  $('#bk-321').innerHTML=`<div class="verdict ${ok?'ok':'warn'}">Regla 3-2-1: ${ok?'cumplida':'aún no'}<span>${copies} copias de los datos (mínimo 3) · ${media} medios distintos (mínimo 2) · ${offsite?'1 o más':'0'} fuera del sitio (mínimo 1)</span></div>`;
+  $('#bk-inc').innerHTML=Object.entries(INC).map(([k,v])=>`<button class="btn sm" data-inc="${k}">${v[0]}</button>`).join('');
+}
+$('#s-backups').addEventListener('click',e=>{
+  const b=e.target.closest('[data-bk]');if(b){bkType=b.dataset.bk;renderBk()}
+  const i=e.target.closest('[data-inc]');if(i){const [n,surv]=INC[i.dataset.inc];const mine=LOC.filter(l=>bkLoc[l[0]]),ok=mine.filter(l=>surv.includes(l[0])),ko=mine.filter(l=>!surv.includes(l[0]));
+    $('#bk-incout').innerHTML=`<span><b>${n}</b> en ${scen==='colegio'?'el servidor de secretaría':'el servidor de nómina'}.</span>`+ko.map(l=>`<span class="crit">Perdida: ${l[1]}</span>`).join('')+ok.map(l=>`<span class="ok">Sobrevive: ${l[1]}</span>`).join('')+`<span class="${ok.length?'ok':'crit'}">${ok.length?'Puedes recuperar los datos.':'No queda ninguna copia. Los datos se pierden.'}</span>`}
+  const r=e.target.closest('[data-raid]');if(r){raid.type=r.dataset.raid;raid.fail=[];renderRaid()}
+  const d=e.target.closest('[data-disk]');if(d){const k=+d.dataset.disk;raid.fail=raid.fail.includes(k)?raid.fail.filter(x=>x!==k):[...raid.fail,k];renderRaid()}
+});
+$('#bk-day').addEventListener('input',renderBk);
+$('#s-backups').addEventListener('change',e=>{if(e.target.dataset.loc){bkLoc[e.target.dataset.loc]=e.target.checked;renderBkLoc()}});
+const RAID={0:{n:2,cap:2,d:'Reparte los datos entre los discos para ganar velocidad. No hay redundancia: si falla uno, se pierde todo.'},1:{n:2,cap:1,d:'Espejo: cada disco es una copia exacta del otro. Soporta la falla de un disco.'},5:{n:3,cap:2,d:'Reparte datos y paridad entre tres o más discos. Soporta la falla de un disco.'},6:{n:4,cap:2,d:'Como RAID 5 pero con doble paridad. Soporta la falla de dos discos.'},10:{n:4,cap:2,d:'Dos espejos combinados. Soporta una falla por cada pareja de discos.'}};
+let raid={type:'5',fail:[]};
+function raidState(type,fail){const f=fail.length;if(!f)return'ok';
+  if(type==='0')return'lost';if(type==='1')return f>=2?'lost':'deg';if(type==='5')return f>=2?'lost':'deg';if(type==='6')return f>=3?'lost':'deg';
+  return (fail.includes(0)&&fail.includes(1))||(fail.includes(2)&&fail.includes(3))?'lost':'deg'}
+function renderRaid(){
+  const R=RAID[raid.type];
+  $('#raid-type').innerHTML=Object.keys(RAID).map(k=>`<button class="${k===raid.type?'on':''}" data-raid="${k}">RAID ${k}</button>`).join('');
+  $('#raid-desc').textContent=R.d;
+  $('#raid-disks').innerHTML=Array.from({length:R.n},(_,i)=>`<button class="disk ${raid.fail.includes(i)?'fail':''}" data-disk="${i}"><svg viewBox="0 0 42 42" aria-hidden="true"><circle class="plat" cx="21" cy="21" r="17"/><circle class="hub" cx="21" cy="21" r="5"/></svg><b>Disco ${i+1}</b><span class="muted">${raid.fail.includes(i)?'Dañado':'1 TB'}${raid.type==='10'?` · par ${i<2?'A':'B'}`:''}</span></button>`).join('');
+  const st=raidState(raid.type,raid.fail);
+  $('#raid-out').innerHTML=`<div class="verdict ${st==='ok'?'ok':st==='deg'?'warn':'crit'}">${st==='ok'?'Arreglo sano':st==='deg'?'Degradado: sigue funcionando, cambia el disco ya':'Datos perdidos'}<span>${R.n} discos de 1 TB · ${R.cap} TB útiles · ${R.n-R.cap} TB dedicados a redundancia</span></div>`;
+}
+
+/* ---------- Blockchain ---------- */
+function sha256(str){
+  let s=unescape(encodeURIComponent(str));const rr=(v,a)=>(v>>>a)|(v<<(32-a)),mp=Math.pow,mw_=mp(2,32);let i,j,res='';const w0=[],bl=s.length*8;
+  let h=sha256.h=sha256.h||[];const k=sha256.k=sha256.k||[];let pc=k.length;const comp={};
+  for(let c=2;pc<64;c++){if(!comp[c]){for(i=0;i<313;i+=c)comp[i]=c;h[pc]=(mp(c,.5)*mw_)|0;k[pc++]=(mp(c,1/3)*mw_)|0}}
+  s+='\x80';while(s.length%64-56)s+='\x00';
+  for(i=0;i<s.length;i++){j=s.charCodeAt(i);w0[i>>2]|=j<<((3-i)%4)*8}
+  w0[w0.length]=(bl/mw_)|0;w0[w0.length]=bl;
+  for(j=0;j<w0.length;){const w=w0.slice(j,j+=16),old=h;h=h.slice(0,8);
+    for(i=0;i<64;i++){const w15=w[i-15],w2=w[i-2],a=h[0],e=h[4];
+      const t1=h[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&h[5])^((~e)&h[6]))+k[i]+(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      const t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&h[1])^(a&h[2])^(h[1]&h[2]));
+      h=[(t1+t2)|0].concat(h);h[4]=(h[4]+t1)|0}
+    for(i=0;i<8;i++)h[i]=(h[i]+old[i])|0}
+  for(i=0;i<8;i++)for(j=3;j+1;j--){const b=(h[i]>>(j*8))&255;res+=((b<16)?0:'')+b.toString(16)}
+  return res}
+const BCD={colegio:['Bloque génesis · Registro académico del colegio','Diploma de bachiller · Laura Gómez · promoción 2026','Nota final · Matemáticas 11B · Andrés Ruiz · 4.6','Pago de pensión · Familia Torres → Colegio · $420.000'],
+ empresa:['Bloque génesis · Libro contable compartido','Transferencia · Cuenta 4471 → Cuenta 9920 · $1.250.000','Pago de nómina · octubre · lote 12 · Banco → 38 empleados','Contrato firmado · Proveedor 88 · huella del documento a3f9']};
+const BCF={colegio:['Familia Peña','Colegio','Pago de matrícula $380.000'],empresa:['Cuenta 1203','Cuenta 7765','Pago a proveedor $640.000']};
+let bc=[],bcTip='',bcReady=false,bcMsg='';
+const bcHash=b=>sha256(b.i+'|'+b.prev+'|'+b.data+'|'+b.nonce);
+function bcLink(){bc.forEach((b,i)=>{b.prev=i?bc[i-1].hash:'0'.repeat(64);b.hash=bcHash(b)})}
+function bcMine(b){for(b.nonce=0;b.nonce<400000;b.nonce++){if(bcHash(b).startsWith('000'))break}b.hash=bcHash(b)}
+function bcMineAll(){bc.forEach((b,i)=>{b.prev=i?bc[i-1].hash:'0'.repeat(64);bcMine(b)})}
+function bcInit(){if(bcReady)return;bcReady=true;bc=BCD[scen].map((d,i)=>({i,data:d,nonce:0,prev:'',hash:''}));bcMineAll();bcTip=bc[bc.length-1].hash;bcMsg='';
+  [$('#bc-from').value,$('#bc-to').value,$('#bc-val').value]=BCF[scen];renderBc(true)}
+function renderBc(full){
+  const firstBad=bc.findIndex(b=>!b.hash.startsWith('000'));
+  if(full)$('#bc-chain').innerHTML=bc.map(b=>`<div class="block" data-b="${b.i}"><div class="row" style="justify-content:space-between"><b style="font-family:var(--display)">Bloque ${b.i}</b><span class="chip" data-st></span></div>
+    <textarea id="bc-d-${b.i}" aria-label="Datos del bloque ${b.i}">${esc(b.data)}</textarea><div class="h">nonce <b data-nonce></b></div><div class="h">anterior <b data-prev></b></div><div class="h">hash <b data-hash></b></div></div>`).join('');
+  bc.forEach((b,i)=>{const el=$(`.block[data-b="${i}"]`),bad=firstBad>=0&&i>=firstBad;el.classList.toggle('bad',bad);
+    const st=$('[data-st]',el);st.textContent=bad?(i===firstBad?'Alterado':'Enlace roto'):'Válido';st.className='chip '+(bad?'crit':'ok');
+    $('[data-nonce]',el).textContent=b.nonce;$('[data-prev]',el).textContent=b.prev.slice(0,20)+'…';$('[data-hash]',el).textContent=b.hash.slice(0,20)+'…'});
+  const tip=bc[bc.length-1].hash,same=tip===bcTip&&firstBad<0;
+  $('#bc-net').innerHTML=`<div class="verdict ${same?'ok':'crit'}">${same?'Los 4 nodos de la red tienen la misma cadena':firstBad>=0?`Cadena inválida desde el bloque ${firstBad}`:'La red rechaza tu cadena'}<span>${same?'Cada nodo guarda una copia. Para engañarlos habría que rehacer el trabajo en más de la mitad de ellos a la vez.':firstBad>=0?'Un solo cambio modificó el hash y rompió el enlace con los bloques siguientes. La alteración queda a la vista.':'Volviste a minar los bloques, pero los otros 3 nodos conservan la cadena original y la tuya no coincide con la mayoría.'}${bcMsg?'<br>'+bcMsg:''}</span></div>`;
+}
+function renderBcUses(){
+  $('#bc-uses').innerHTML=`<h3>Para qué sirve</h3><ul class="clean">
+   <li><b>Bancos:</b> un registro compartido entre entidades donde cada transferencia queda sellada y ninguna parte puede borrarla ni cambiarla después. Reduce fraudes y agiliza pagos entre bancos.</li>
+   <li><b>Colegio:</b> diplomas y certificados con huella digital verificable. Una universidad puede comprobar que el diploma es auténtico sin llamar al colegio, y nadie puede subir una nota a escondidas.</li>
+   <li><b>Empresa:</b> contratos, registros de acceso y trazabilidad de productos. Si un atacante borra sus huellas en los registros, la cadena lo delata.</li></ul>
+   <p class="muted" style="font-size:.86rem">Blockchain da integridad, no confidencialidad. Por eso se guarda la huella (hash) del documento y no los datos personales. Tampoco protege si te roban la llave privada.</p>`;
+}
+$('#bc-chain').addEventListener('input',e=>{const el=e.target.closest('.block');if(!el)return;bc[+el.dataset.b].data=e.target.value;bcLink();bcMsg='';renderBc(false)});
+$('#s-blockchain').addEventListener('click',e=>{
+  if(e.target.id==='bc-reset'){bcReady=false;bcInit()}
+  if(e.target.id==='bc-fix'){bcMineAll();bcMsg='';renderBc(false)}
+  if(e.target.id==='bc-add'){const ok=bc[bc.length-1].hash===bcTip&&bc.every(b=>b.hash.startsWith('000'));
+    if(!ok){bcMsg='No se puede añadir: primero la red debe aceptar tu cadena.';renderBc(false);return}
+    const b={i:bc.length,data:`${$('#bc-from').value} → ${$('#bc-to').value} · ${$('#bc-val').value}`,nonce:0,prev:bcTip,hash:''};bcMine(b);bc.push(b);bcTip=b.hash;bcMsg=`Bloque ${b.i} minado con nonce ${b.nonce} y aceptado por la red.`;renderBc(true);$('#bc-chain').scrollLeft=1e5}
+});
+
+/* ---------- YOLO ---------- */
+const PLATES=[['KXM 482',true],['BTR 915',true],['ZQH 037',false]];
+const YC={persona:'#4fd4e6',auto:'#ffb454',placa:'#7dff9b',mochila:'#ff8fd0'};
+const YOBJ=[{c:'auto',x:70,y:172,w:270,h:178,p:.94},{c:'placa',x:164,y:300,w:82,h:28,p:.88},{c:'persona',x:412,y:150,w:74,h:214,p:.9},{c:'mochila',x:474,y:204,w:44,h:66,p:.71},{c:'persona',x:556,y:132,w:84,h:236,p:.92,adv:true}];
+const YFP=[{c:'persona',x:668,y:176,w:34,h:150,p:.22},{c:'auto',x:372,y:52,w:150,h:84,p:.16},{c:'mochila',x:22,y:300,w:40,h:50,p:.31}];
+$('#yolo-plate').innerHTML=PLATES.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('');
+function rrect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+function mosaic(x,X,Y,w,h,cols){const s=8;for(let a=0;a<w;a+=s)for(let b=0;b<h;b+=s){x.fillStyle=cols[(a/s*3+b/s*5)%cols.length|0];x.fillRect(X+a,Y+b,Math.min(s,w-a),Math.min(s,h-b))}}
+function person(x,cx,top,scale,shirt,blur,patch){
+  const s=scale;x.fillStyle='#1c2140';x.fillRect(cx-16*s,top+120*s,13*s,90*s);x.fillRect(cx+3*s,top+120*s,13*s,90*s);
+  x.fillStyle=shirt;rrect(x,cx-24*s,top+42*s,48*s,86*s,10*s);x.fill();
+  x.fillRect(cx-34*s,top+48*s,10*s,62*s);x.fillRect(cx+24*s,top+48*s,10*s,62*s);
+  x.fillStyle='#e8b58f';x.beginPath();x.arc(cx,top+22*s,19*s,0,7);x.fill();
+  if(blur)mosaic(x,cx-19*s,top+3*s,38*s,38*s,['#e8b58f','#c99673','#f1c9a8','#b98562']);
+  else{x.fillStyle='#1c2140';x.beginPath();x.arc(cx-7*s,top+20*s,2.500*s,0,7);x.arc(cx+7*s,top+20*s,2.500*s,0,7);x.fill()}
+  if(patch){mosaic(x,cx-17*s,top+58*s,34*s,34*s,['#ff3b6b','#ffe14d','#3bffb0','#3b6bff','#ff8a3b'])}
+}
+function drawYolo(){
+  const c=$('#yolo-cv'),x=c.getContext('2d'),W=720,H=400,thr=+$('#yolo-thr').value/100,nms=$('#yolo-nms').checked,adv=$('#yolo-adv').checked,blur=$('#yolo-blur').checked,pl=PLATES[+$('#yolo-plate').value];
+  $('#yolo-thrlbl').textContent=thr.toFixed(2);
+  let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#27336d');g.addColorStop(.55,'#b9657a');g.addColorStop(.75,'#f0a070');x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.fillStyle='#343a63';x.fillRect(350,40,370,270);x.fillStyle='#ffd98a';for(let r=0;r<3;r++)for(let k=0;k<6;k++)if((r*7+k*3)%4)x.fillRect(372+k*56,62+r*62,30,34);
+  x.fillStyle='#2a2f52';x.fillRect(0,120,60,190);x.fillStyle='#22263f';x.fillRect(0,310,W,90);x.fillStyle='#3a3f63';for(let k=0;k<6;k++)x.fillRect(20+k*130,352,70,6);
+  x.fillStyle='#ffcf5c';x.fillRect(676,170,10,160);x.fillStyle='#ff6078';x.fillRect(560,176,126,8);
+  /* auto de frente */
+  x.fillStyle='#15182c';x.fillRect(92,318,44,34);x.fillRect(274,318,44,34);
+  x.fillStyle='#d9475a';rrect(x,112,176,186,80,26);x.fill();rrect(x,74,236,262,96,22);x.fill();
+  x.fillStyle='#a8dcee';rrect(x,130,190,150,50,14);x.fill();
+  x.fillStyle='#fff2c2';rrect(x,90,256,48,24,10);x.fill();rrect(x,272,256,48,24,10);x.fill();
+  x.fillStyle='#8d2a39';x.fillRect(150,262,110,6);x.fillRect(150,274,110,6);
+  if(blur)mosaic(x,166,302,78,24,['#f5c518','#c9a010','#e8d060','#8a7410']);
+  else{x.fillStyle='#f5c518';rrect(x,166,302,78,24,4);x.fill();x.fillStyle='#15182c';x.font='700 15px "IBM Plex Mono",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(pl[0],205,315)}
+  /* personas */
+  x.fillStyle='#ff9d4d';rrect(x,478,208,36,58,9);x.fill();
+  person(x,449,154,.98,'#3f8fd6',blur,false);person(x,598,136,1.080,'#6b5bd6',blur,adv);
+  if($('#yolo-grid').checked){x.strokeStyle='rgba(255,255,255,.28)';x.lineWidth=1;for(let k=1;k<9;k++){x.beginPath();x.moveTo(k*80,0);x.lineTo(k*80,H);x.stroke()}for(let k=1;k<5;k++){x.beginPath();x.moveTo(0,k*80);x.lineTo(W,k*80);x.stroke()}}
+  let dets=[];
+  YOBJ.forEach(o=>{const p=o.p*(adv&&o.adv?.13:1)*(blur&&o.c==='placa'?1:1);dets.push({...o,p});if(!nms){dets.push({...o,x:o.x+9,y:o.y-7,w:o.w-6,h:o.h+8,p:p*.86,dup:1});dets.push({...o,x:o.x-11,y:o.y+8,w:o.w+10,h:o.h-6,p:p*.74,dup:1})}});
+  dets=dets.concat(YFP).filter(d=>d.p>=thr).sort((a,b)=>b.p-a.p);
+  x.font='600 13px "IBM Plex Mono",monospace';x.textAlign='left';x.textBaseline='middle';
+  dets.forEach(d=>{x.strokeStyle=YC[d.c];x.lineWidth=d.dup?1.500:3;x.strokeRect(d.x,d.y,d.w,d.h);if(!d.dup){const t=`${d.c} ${d.p.toFixed(2)}`,tw=x.measureText(t).width+10;x.fillStyle=YC[d.c];x.fillRect(d.x-1.500,d.y-19,tw,19);x.fillStyle='#0c1227';x.fillText(t,d.x+4,d.y-9)}});
+  const real=dets.filter(d=>!d.dup);
+  $('#yolo-dets').innerHTML=real.length?real.map(d=>`<div><span>${d.c}</span><span>${Math.round(d.p*100)}%</span></div>`).join('')+(dets.length>real.length?`<div><span class="muted">cajas duplicadas</span><span>${dets.length-real.length}</span></div>`:''):'<span class="muted">Ningún objeto supera el umbral.</span>';
+  const plate=real.find(d=>d.c==='placa'),people=real.filter(d=>d.c==='persona'&&d.p>.4).length;
+  yoloState={plate:!!plate,ok:pl[1],text:pl[0],people};
+  let notes=[];
+  if(adv&&people<2)notes.push('<span class="crit">El parche adversario hizo desaparecer a una persona para el modelo. Es un ataque real contra sistemas de visión.</span>');
+  if(thr<.3)notes.push('<span class="warn">Umbral bajo: aparecen falsos positivos (el poste, una ventana).</span>');
+  if(thr>.9)notes.push('<span class="warn">Umbral alto: se escapan objetos reales.</span>');
+  if(!nms)notes.push('<span class="warn">Sin NMS el mismo objeto recibe varias cajas.</span>');
+  if(blur)notes.push('<span class="ok">Rostros y placa se guardan difuminados. La lectura de la placa se hace antes y solo se conserva el resultado.</span>');
+  $('#yolo-log').innerHTML=notes.join('')||'<span class="muted">Mueve el umbral y activa las opciones para ver cómo cambia la detección.</span>';
+  $('#yolo-access').innerHTML=`<div class="verdict ${!plate?'warn':pl[1]?'ok':'crit'}">${!plate?'Placa no detectada':pl[1]?'Acceso permitido':'Acceso denegado'}<span>${!plate?'Sin lectura no se abre la barrera. Se avisa al vigilante.':`Lectura ${pl[0]} · ${pl[1]?'está':'no está'} en la lista autorizada del ${scen==='colegio'?'colegio':'parqueadero'}.`}</span></div>`;
+}
+let yoloState={};
+$('#s-yolo').addEventListener('input',drawYolo);
+$('#yolo-siem').addEventListener('click',()=>{const y=yoloState;
+  siemPush(!y.plate?{m:'Vehículo en portería sin placa legible',src:'Cámara de portería (YOLO)',l:7,sev:'media',pb:'bloquear'}:y.ok?{m:`Ingreso autorizado de la placa ${y.text}`,src:'Cámara de portería (YOLO)',l:7,sev:'info'}:{m:`Placa ${y.text} no autorizada intenta ingresar`,src:'Cámara de portería (YOLO)',l:7,sev:'alta',pb:'bloquear'});
+  renderSiem();$('#yolo-log').innerHTML='<span class="ok">Evento enviado. Ábrelo en la pestaña SIEM y SOAR.</span>'});
+
+/* ---------- Reto ---------- */
+const QZ=[
+['¿En qué capa del modelo OSI ocurre una suplantación ARP?',['Física','Enlace de datos','Transporte','Aplicación'],1,'ARP relaciona direcciones IP con direcciones MAC dentro de la red local, en la capa 2.'],
+['¿Qué malware se propaga solo por la red, sin que nadie haga clic?',['Troyano','Adware','Gusano','Keylogger'],2,'El gusano aprovecha fallos de red y se copia sin ayuda humana.'],
+['Un programa "gratis" que al instalarse abre una puerta al atacante es un…',['Troyano','Gusano','Rootkit','RAID'],0,'Como el caballo de Troya: parece un regalo y esconde el ataque.'],
+['¿Cuál es la tarea principal de un SIEM?',['Cifrar los discos','Reunir y relacionar registros para detectar incidentes','Hacer copias de seguridad','Bloquear puertos USB'],1,'El SIEM centraliza los registros y genera alertas al relacionarlos.'],
+['¿Qué añade un SOAR al SIEM?',['Más almacenamiento','Respuesta automática con playbooks','Un antivirus','Una VPN'],1,'SOAR orquesta herramientas y automatiza la respuesta.'],
+['En un RAID 5 de tres discos fallan dos al mismo tiempo. ¿Qué ocurre?',['Nada, sigue igual','Funciona más lento','Se pierden los datos','Se convierte en RAID 1'],2,'RAID 5 solo tolera la falla de un disco.'],
+['La regla 3-2-1 de las copias de seguridad significa…',['3 contraseñas, 2 usuarios, 1 servidor','3 copias, 2 medios distintos, 1 fuera del sitio','3 discos, 2 RAID, 1 nube','3 días, 2 semanas, 1 mes'],1,'Tres copias de los datos, en dos tipos de medio, y una lejos del lugar.'],
+['Si alguien cambia un dato en un bloque de una blockchain…',['No pasa nada','Cambia su hash y se rompe el enlace con los bloques siguientes','El bloque se borra solo','El dato se cifra'],1,'Cada bloque guarda el hash del anterior, así que el cambio se nota en toda la cadena.'],
+['En YOLO, ¿para qué sirve la supresión de no máximos (NMS)?',['Para entrenar más rápido','Para eliminar cajas duplicadas del mismo objeto','Para cifrar el video','Para subir la resolución'],1,'Se queda con la caja de mayor confianza y descarta las que se le superponen.'],
+['¿Qué copia de seguridad resiste mejor un ransomware?',['Una carpeta en el mismo disco','Un NAS siempre conectado','Una copia desconectada o en la nube con versiones','Un RAID 0'],2,'El ransomware cifra todo lo que alcanza por la red. Lo desconectado queda a salvo.']];
+const OPEN=['¿Qué datos personales tuyos guarda el colegio o tu empresa, y quién puede verlos?','Busca tu correo en Have I Been Pwned. ¿Apareció en alguna filtración? ¿Qué harías ahora?','¿Qué capa del modelo OSI crees que es la más descuidada en tu institución? ¿Por qué?','Si mañana un ransomware cifrara el servidor, ¿cuánto tiempo y cuánta información se perdería?','¿Es justo que una cámara con inteligencia artificial reconozca a los estudiantes? ¿Qué reglas pondrías?','¿En qué casos una blockchain es mejor que una base de datos normal, y en cuáles no vale la pena?'];
+const LINKS=[['INCIBE','Guías y juegos de ciberseguridad en español','https://www.incibe.es/'],['ColCERT','Equipo de respuesta a incidentes de Colombia','https://www.colcert.gov.co/'],['OWASP Top 10','Los diez riesgos más comunes en aplicaciones web','https://owasp.org/www-project-top-ten/'],['MITRE ATT&CK','Mapa de las técnicas que usan los atacantes','https://attack.mitre.org/'],['Marco NIST','Identificar, proteger, detectar, responder, recuperar','https://www.nist.gov/cyberframework'],['Cloudflare: modelo OSI','Explicación clara de las siete capas','https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/'],['TryHackMe','Laboratorios guiados para principiantes','https://tryhackme.com/'],['OverTheWire','Juegos para aprender Linux y seguridad','https://overthewire.org/wargames/'],['picoCTF','Retos de captura la bandera para estudiantes','https://picoctf.org/'],['Cisco Networking Academy','Cursos gratuitos de redes y ciberseguridad','https://www.netacad.com/'],['Wazuh','SIEM de código abierto para practicar','https://wazuh.com/'],['Have I Been Pwned','Revisa si tu correo salió en una filtración','https://haveibeenpwned.com/'],['VirusTotal','Analiza archivos y enlaces sospechosos','https://www.virustotal.com/'],['No More Ransom','Ayuda y descifradores contra el ransomware','https://www.nomoreransom.org/'],['Demo de blockchain','Demostración visual de bloques y hashes','https://andersbrownworth.com/blockchain/'],['Ultralytics YOLO','Documentación oficial para probar YOLO','https://docs.ultralytics.com/']];
+let qa={};
+function renderQuiz(){
+  $('#quiz-list').innerHTML=QZ.map((q,i)=>`<div class="panel q"><h3>${i+1}. ${q[0]}</h3><div class="opts">${q[1].map((o,k)=>`<button data-q="${i}" data-o="${k}" class="${qa[i]===undefined?'':k===q[2]?'right':qa[i]===k?'wrong':''}" ${qa[i]!==undefined?'disabled':''}>${o}</button>`).join('')}</div>${qa[i]!==undefined?`<p class="muted">${qa[i]===q[2]?'Correcto. ':'No es esa. '}${q[3]}</p>`:''}</div>`).join('');
+  const done=Object.keys(qa).length,score=QZ.filter((q,i)=>qa[i]===q[2]).length;
+  $('#quiz-score').textContent=`Puntaje: ${score} de ${QZ.length}`+(done===QZ.length?(score>=8?' · Nivel analista':score>=5?' · Nivel aprendiz':' · Vuelve a los módulos e inténtalo otra vez'):'');
+  $('#quiz-bar').style.width=(done/QZ.length*100)+'%';
+  if(done===QZ.length&&score>store.get('best',0)){store.set('best',score);renderHome()}
+}
+$('#s-quiz').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){qa[+b.dataset.q]=+b.dataset.o;renderQuiz()}if(e.target.id==='quiz-reset'){qa={};renderQuiz()}});
+$('#quiz-open').innerHTML=OPEN.map(o=>`<li>${o}</li>`).join('');
+$('#quiz-links').innerHTML=LINKS.map(l=>`<a href="${l[2]}" target="_blank" rel="noopener"><b>${l[0]}</b><small>${l[1]}</small></a>`).join('');
+
+/* ---------- Arranque ---------- */
+showPdu(7);renderMw();mwReset();renderSo();renderBk();renderBkLoc();renderRaid();renderQuiz();renderScen();
+go((location.hash||'').slice(1)||'inicio');
+</script>
+
+</body></html>
