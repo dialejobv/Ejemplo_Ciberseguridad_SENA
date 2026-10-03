@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laboratorio de galletas: química, cocina y visión por computador</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#EEF3FB; --surface:#FFFFFF; --ink:#13223D; --muted:#52617D; --line:#C9D5EA;
+  --primary:#1F4FD8; --primary-ink:#FFFFFF; --butter:#FFC94A; --butter-ink:#3A2A00;
+  --berry:#C4245E; --ok:#17875A; --scene:#CFE0F7; --floor:#9DB4D8;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1730; --surface:#17223F; --ink:#EAF0FB; --muted:#A4B2CF; --line:#2C3B63;
+    --primary:#8FB0FF; --primary-ink:#0B1430; --berry:#FF7FA8; --ok:#4FD69C; --scene:#1B2A4E; --floor:#26375F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1730; --surface:#17223F; --ink:#EAF0FB; --muted:#A4B2CF; --line:#2C3B63;
+  --primary:#8FB0FF; --primary-ink:#0B1430; --berry:#FF7FA8; --ok:#4FD69C; --scene:#1B2A4E; --floor:#26375F;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%; margin:0; display:flex; flex-direction:column; background:var(--bg); color:var(--ink);
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif; font-size:16px; line-height:1.5}
+h1,h2,h3,.disp{font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif; font-weight:600; line-height:1.15; margin:0}
+button,input{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--butter); outline-offset:2px}
+
+.top{display:flex; align-items:center; gap:12px 24px; flex-wrap:wrap; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--surface)}
+.top h1{font-size:1.35rem}
+.top p{margin:0; color:var(--muted); font-size:.9rem}
+.steps{list-style:none; display:flex; gap:6px; margin:0 0 0 auto; padding:0; overflow-x:auto; max-width:100%}
+.steps button{display:flex; align-items:center; gap:8px; border:1px solid var(--line); background:transparent; border-radius:999px;
+  padding:4px 14px 4px 4px; cursor:pointer; white-space:nowrap; font-family:"Fredoka",system-ui,sans-serif; font-weight:500}
+.steps .n{display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--line); font-weight:600}
+.steps button[aria-current="step"]{background:var(--primary); border-color:var(--primary); color:var(--primary-ink)}
+.steps button[aria-current="step"] .n{background:var(--butter); color:var(--butter-ink)}
+
+.lab{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,410px)}
+.stage{position:relative; min-height:0; background:var(--scene); overflow:hidden}
+#gl{display:block; width:100%; height:100%; touch-action:none; cursor:grab}
+#gl:active{cursor:grabbing}
+.detector{position:absolute; left:12px; bottom:12px; width:clamp(128px,27%,270px); margin:0; background:#0A1A4A; border-radius:12px;
+  border:2px solid #FF7FA8; overflow:hidden; color:#EAF0FB}
+.detector canvas{display:block; width:100%; height:auto; image-rendering:pixelated}
+.detector figcaption{font-size:.78rem; padding:3px 8px 4px; font-weight:700}
+.hint{position:absolute; right:12px; top:10px; margin:0; font-size:.8rem; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:2px 10px; opacity:.9}
+#nogl{position:absolute; inset:0; display:grid; place-items:center; padding:24px; text-align:center; background:var(--surface)}
+#nogl[hidden]{display:none}
+
+.panel{min-height:0; overflow-y:auto; background:var(--surface); border-left:1px solid var(--line); padding:18px 18px 28px; display:flex; flex-direction:column; gap:16px}
+.panel h2{font-size:1.6rem}
+.panel h3{font-size:1.05rem; margin-bottom:6px}
+.panel p{margin:0}
+#stepText{color:var(--muted)}
+.ctl{display:flex; flex-direction:column; gap:10px}
+.ctl[hidden]{display:none}
+.row{display:flex; flex-wrap:wrap; gap:8px}
+.btn{border:1px solid var(--line); background:var(--bg); border-radius:12px; padding:9px 14px; cursor:pointer; font-weight:700}
+.btn.main{background:var(--butter); border-color:var(--butter); color:var(--butter-ink)}
+.btn.go{background:var(--primary); border-color:var(--primary); color:var(--primary-ink)}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.ings{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.ing{display:flex; align-items:center; gap:10px; text-align:left; border:1px solid var(--line); background:var(--bg); border-radius:12px; padding:8px 10px; cursor:pointer}
+.ing i{flex:none; width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.35)}
+.ing b{display:block; line-height:1.2}
+.ing small{color:var(--muted)}
+.ing[aria-pressed="true"]{border-color:var(--ok); box-shadow:inset 0 0 0 1px var(--ok)}
+.ing[aria-pressed="true"] small::after{content:" (ya en el bol)"}
+.note{border-left:4px solid var(--butter); padding:6px 10px; background:var(--bg); border-radius:0 10px 10px 0; font-size:.95rem}
+label.sl{display:grid; grid-template-columns:1fr auto; gap:2px 10px; font-weight:700}
+label.sl input{grid-column:1/-1; width:100%; accent-color:var(--primary)}
+label.sl output{font-variant-numeric:tabular-nums}
+.bar{position:relative; height:14px; border-radius:7px; background:var(--line); overflow:hidden}
+.bar>span{position:absolute; inset:0 auto 0 0; width:0; background:var(--primary); border-radius:7px}
+.bar.mixbar{background:linear-gradient(90deg,var(--line) 0 40%,color-mix(in srgb,var(--ok) 45%,var(--line)) 40% 80%,color-mix(in srgb,var(--berry) 45%,var(--line)) 80%)}
+.legend{display:flex; justify-content:space-between; font-size:.8rem; color:var(--muted)}
+.rx{list-style:none; margin:0; padding:0; display:grid; gap:4px; font-size:.92rem}
+.rx li{display:grid; grid-template-columns:54px 1fr; gap:8px; padding:4px 8px; border-radius:8px; color:var(--muted)}
+.rx li.on{background:var(--butter); color:var(--butter-ink); font-weight:700}
+.read{border:1px solid var(--line); border-radius:14px; padding:12px}
+.read dl{display:grid; grid-template-columns:1fr auto; gap:4px 12px; margin:0}
+.read dt{color:var(--muted)} .read dd{margin:0; font-weight:700; font-variant-numeric:tabular-nums; text-align:right}
+.read .sw{display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-2px; margin-right:6px; border:1px solid rgba(0,0,0,.4)}
+.read .state{margin-top:8px; font-weight:700}
+.ok{color:var(--ok)} .bad{color:var(--berry)}
+table.cm{border-collapse:collapse; width:100%; margin-top:8px; font-size:.9rem}
+table.cm th,table.cm td{border:1px solid var(--line); padding:4px 6px; text-align:center}
+table.cm th{font-weight:400; color:var(--muted)}
+table.cm td{font-weight:700; font-variant-numeric:tabular-nums}
+.tabs{display:flex; gap:6px; margin-bottom:8px}
+.tabs button{border:1px solid var(--line); background:transparent; border-radius:999px; padding:4px 12px; cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+#sciBody{max-width:62ch}
+.ask{margin-top:10px !important; font-style:italic}
+.navb{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:auto; padding-top:8px; border-top:1px solid var(--line)}
+#gate{flex-basis:100%; font-size:.9rem; color:var(--muted)}
+
+@media (max-width:820px){
+  .lab{grid-template-columns:minmax(0,1fr); grid-template-rows:46% minmax(0,1fr)}
+  .panel{border-left:0; border-top:1px solid var(--line)}
+  .top p{display:none}
+  .steps{margin-left:0}
+  .steps button:not([aria-current="step"]) .t{display:none}
+  .steps button:not([aria-current="step"]){padding:4px}
+  .ings{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Laboratorio de galletas</h1>
+    <p>Química, cocina y visión por computador en cinco pasos</p>
+  </div>
+  <ol class="steps" id="steps" aria-label="Pasos del proceso"></ol>
+</header>
+
+<main class="lab">
+  <section class="stage" aria-label="Simulación 3D">
+    <canvas id="gl" aria-label="Escena 3D de la panadería. Arrastra para girar la cámara."></canvas>
+    <p class="hint">Arrastra para girar, rueda para acercar</p>
+    <figure class="detector">
+      <canvas id="cam" width="400" height="300" aria-label="Imagen que analiza el detector"></canvas>
+      <figcaption>Lo que ve el detector</figcaption>
+    </figure>
+    <div id="nogl" hidden><p>La escena 3D no pudo iniciar. Abre esta página en un navegador con WebGL activo y conexión a internet para cargar la biblioteca three.js.</p></div>
+  </section>
+
+  <aside class="panel">
+    <div>
+      <h2 id="stepTitle"></h2>
+      <p id="stepText"></p>
+    </div>
+
+    <div class="ctl" id="ctl0">
+      <div class="ings" id="ings"></div>
+      <p class="note" id="ingNote">Toca un ingrediente para echarlo al bol y ver qué hace en la receta.</p>
+      <div class="row"><button class="btn" id="empty">Vaciar el bol</button></div>
+    </div>
+
+    <div class="ctl" id="ctl1" hidden>
+      <div class="row"><button class="btn main" id="mixBtn" aria-pressed="false">Mezclar</button></div>
+      <div>
+        <strong>Tiempo de mezclado</strong>
+        <div class="bar mixbar"><span id="mixBar"></span></div>
+        <div class="legend"><span>poco</span><span>justo</span><span>demasiado</span></div>
+      </div>
+      <p class="note" id="mixNote">Mezcla y mira cómo cambia la lectura del detector.</p>
+    </div>
+
+    <div class="ctl" id="ctl2" hidden>
+      <label class="sl">Peso de cada bola <output id="gOut">30 g</output>
+        <input type="range" id="grams" min="20" max="50" step="1" value="30"></label>
+      <div class="row">
+        <button class="btn main" id="addBall">Poner una bola</button>
+        <button class="btn" id="fillTray">Llenar la bandeja</button>
+        <button class="btn" id="delBall">Quitar la última</button>
+      </div>
+      <p class="note">La receta pide bolas de 30 g. Prueba a poner una de 45 g y mira si el detector la descubre.</p>
+    </div>
+
+    <div class="ctl" id="ctl3" hidden>
+      <label class="sl">Temperatura del horno <output id="tOut">180 °C</output>
+        <input type="range" id="temp" min="120" max="240" step="5" value="180"></label>
+      <div class="row">
+        <button class="btn main" id="bakeBtn">Hornear</button>
+        <button class="btn" id="pullBtn" disabled>Sacar la bandeja</button>
+        <button class="btn" id="rebake">Hornear otra bandeja</button>
+      </div>
+      <div class="read"><dl>
+        <dt>Tiempo en el horno</dt><dd id="bkTime">0:00 min</dd>
+        <dt>Temperatura de la superficie</dt><dd id="bkTs">20 °C</dd>
+      </dl></div>
+      <ul class="rx" id="rx"></ul>
+      <p class="note" id="bakeNote">Un segundo de simulación equivale a 30 segundos reales de horno.</p>
+    </div>
+
+    <div class="ctl" id="ctl4" hidden>
+      <div class="row">
+        <button class="btn main" id="beltBtn" aria-pressed="false">Encender la banda</button>
+        <button class="btn" id="resetStats">Reiniciar conteo</button>
+      </div>
+      <label class="sl">Velocidad de la banda <output id="vOut">1,5</output>
+        <input type="range" id="speed" min="0.5" max="3.5" step="0.1" value="1.5"></label>
+      <label class="sl">Ruido de la cámara <output id="nOut">0</output>
+        <input type="range" id="noise" min="0" max="35" step="1" value="0"></label>
+      <p class="note" id="prodNote"></p>
+    </div>
+
+    <section class="read" aria-live="off">
+      <h3>Lectura del detector</h3>
+      <div id="readout"></div>
+    </section>
+
+    <section>
+      <h3>La ciencia de este paso</h3>
+      <div class="tabs" id="tabs">
+        <button data-k="q" aria-pressed="true">Química</button>
+        <button data-k="v" aria-pressed="false">Visión</button>
+        <button data-k="g" aria-pressed="false">Gastronomía</button>
+      </div>
+      <p id="sciBody"></p>
+      <p class="ask" id="sciAsk"></p>
+    </section>
+
+    <div class="navb">
+      <button class="btn" id="prev">Paso anterior</button>
+      <button class="btn go" id="next"></button>
+      <span id="gate"></span>
+    </div>
+  </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var canvas=$('gl'), renderer;
+try{ renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true}); }
+catch(e){ $('nogl').hidden=false; return; }
+
+/* ---------- contenido ---------- */
+var STEPS=[
+ {t:'Ingredientes', d:'Agrega los seis ingredientes al bol. Cada uno tiene un trabajo químico distinto.'},
+ {t:'Mezclar', d:'Mezcla hasta que el detector vea un color parejo. Si te pasas, el gluten endurece la galleta.'},
+ {t:'Formar', d:'Porciona bolas del mismo tamaño. El detector las cuenta y estima su peso por el área que ocupan.'},
+ {t:'Hornear', d:'Elige la temperatura, hornea y saca la bandeja cuando el detector vea galletas doradas.'},
+ {t:'Producción', d:'Enciende la banda. El detector clasifica cada galleta y la paleta retira las defectuosas.'}
+];
+var ING=[
+ {id:'harina',n:'Harina de trigo',q:'250 g',c:0xf4efe4,k:22,note:'Harina: aporta almidón, que absorbe agua, y las proteínas glutenina y gliadina, que al mojarse forman gluten, la «estructura» de la galleta.'},
+ {id:'azucar',n:'Azúcar morena',q:'150 g',c:0xb98a55,k:12,note:'Azúcar morena: sacarosa (C₁₂H₂₂O₁₁) con melaza. Endulza, retiene humedad y en el horno se carameliza. La melaza es un poco ácida y ayuda a activar el bicarbonato.'},
+ {id:'mantequilla',n:'Mantequilla',q:'120 g',c:0xf6d55c,k:10,note:'Mantequilla: una emulsión de agua en grasa. La grasa recubre las proteínas de la harina y evita que se forme demasiado gluten: por eso la galleta queda tierna.'},
+ {id:'huevo',n:'Huevo',q:'1 unidad',c:0xf2a23a,k:4,note:'Huevo: aporta agua, proteínas que cuajan con el calor y lecitina, una molécula que une el agua con la grasa (emulsionante).'},
+ {id:'bicarbonato',n:'Bicarbonato',q:'5 g',c:0xffffff,k:3,note:'Bicarbonato de sodio (NaHCO₃): una base. Con calor o con ácidos libera dióxido de carbono (CO₂), el gas que infla la galleta.'},
+ {id:'chispas',n:'Chispas de chocolate',q:'150 g',c:0x3b2216,k:14,note:'Chispas de chocolate: la manteca de cacao se funde cerca de 34 °C, pero las chispas conservan su forma porque tienen poca grasa y no se mezclan con la masa.'}
+];
+var SCI=[
+ {q:'La harina aporta almidón y dos proteínas: glutenina y gliadina. El azúcar morena es sacarosa (C₁₂H₂₂O₁₁) con melaza, que es ligeramente ácida. La mantequilla es una emulsión de agua en grasa. El huevo trae agua, proteínas y lecitina. El bicarbonato de sodio (NaHCO₃) es una base que produce gas con ácidos y con calor.',
+  v:'Una cámara no ve «harina»: ve una cuadrícula de píxeles, cada uno con tres números (rojo, verde y azul) entre 0 y 255. El círculo punteado es la región de interés (ROI): el detector solo analiza los píxeles de adentro para no confundirse con la mesa.',
+  g:'Pesar todo antes de empezar se llama mise en place. En repostería las proporciones mandan: más azúcar da galletas más extendidas y crujientes; más harina, galletas más gruesas.',
+  ask:'Para pensar: ¿por qué la receta pide gramos y no «tazas»?'},
+ {q:'Al mojarse y moverse, la glutenina y la gliadina se enlazan y forman gluten, una red elástica. Un poco de gluten sostiene la galleta; demasiado la vuelve dura. La grasa recubre las proteínas y frena esa red. La lecitina del huevo mantiene unidas el agua y la grasa en una emulsión.',
+  v:'El detector calcula la cromaticidad de cada píxel (qué fracción del color es rojo y qué fracción es azul) y mide cuánto varía dentro del ROI con la desviación estándar. Mucha variación significa grumos de colores distintos; poca, masa homogénea. Los píxeles muy oscuros (chispas) se ignoran.',
+  g:'Se mezcla solo hasta integrar. La cámara ve el color, pero no puede ver el gluten: por eso en una panadería también se controla el tiempo de mezclado.',
+  ask:'Para pensar: ¿qué otra propiedad de la masa no se puede medir con una foto?'},
+ {q:'Una bola pequeña tiene más superficie por cada gramo de masa que una grande, así que se calienta más rápido. Si las bolas son de tamaños distintos, las reacciones del horno no terminan al mismo tiempo.',
+  v:'El detector separa la masa del fondo con una regla simple: la masa es cálida (más rojo que azul) y el tapete es azul. Luego agrupa los píxeles vecinos en «manchas» (componentes conectados), las cuenta y mide su área. Con la escala de la cámara (1 píxel = 0,18 cm) convierte el área en diámetro y el diámetro en gramos.',
+  g:'Porcionar parejo es la clave de una bandeja uniforme. Deja espacio: en el horno cada bola se extiende casi al doble de su diámetro.',
+  ask:'Para pensar: si dos bolas quedan pegadas, ¿cómo podría el detector notar que no es una sola?'},
+ {q:'Con el calor las reacciones ocurren en orden: la grasa se funde, las proteínas cuajan, el bicarbonato se descompone (2 NaHCO₃ → Na₂CO₃ + H₂O + CO₂) e infla la masa, y el agua se evapora. Sobre 140 °C empieza la reacción de Maillard entre azúcares y aminoácidos, que crea el color dorado y los aromas. Cerca de 160 °C la sacarosa se carameliza. Si el calor sigue, todo se carboniza.',
+  v:'El detector convierte el color de cada galleta en un índice de dorado a partir de su luminosidad: masa clara es cruda, tono medio es dorada, muy oscura es quemada. Solo ve la superficie: no puede saber si el centro quedó crudo.',
+  g:'A 180 °C una galleta de 30 g tarda entre 11 y 13 minutos. Un horno muy caliente dora por fuera antes de cocinar el centro; uno muy frío seca la galleta sin dorarla. El fondo del horno suele estar más caliente que la zona de la puerta.',
+  ask:'Para pensar: ¿por qué las galletas del fondo se doran antes que las de adelante?'},
+ {q:'El color es un indicador químico: muestra cuánto avanzaron la reacción de Maillard y la caramelización. Por eso una cámara puede estimar la cocción sin tocar ni probar la galleta.',
+  v:'Cada foto da un voto por galleta: buena, cruda, quemada o rota (una galleta rota llena poco su recuadro). La decisión final es la mayoría de votos. Al comparar con la realidad se obtiene la matriz de confusión: aciertos, falsos rechazos (buenas descartadas) y fugas (defectuosas que pasaron). El ruido de la cámara aumenta los errores.',
+  g:'En una fábrica pasan miles de galletas por hora. La inspección automática mantiene la calidad constante y reduce el desperdicio, pero siempre se calibra con personas que prueban el producto.',
+  ask:'Para pensar: ¿qué error es peor para una panadería, descartar una galleta buena o empacar una quemada?'}
+];
+var RX=[
+ [35,'La mantequilla se funde y la masa se extiende'],
+ [62,'Las proteínas del huevo cuajan y dan estructura'],
+ [80,'El bicarbonato libera CO₂ y la galleta se infla'],
+ [100,'El agua se evapora y la superficie se seca'],
+ [140,'Reacción de Maillard: aparecen color dorado y aroma'],
+ [160,'La sacarosa se carameliza']
+];
+
+/* ---------- estado ---------- */
+var S={stage:0, added:{}, nAdded:0, fill:0, mix:0, mixing:false, mixReady:false, std0:null, homog:0,
+  grams:30, baking:false, bakeDone:false, bakeMin:0, ovenT:180, bakeAvg:0.6, bakedOnce:false,
+  beltOn:false, speed:1.5, noise:0, stats:{tn:0,fp:0,fn:0,tp:0}, tab:'q'};
+var SX=[0,0,20,40,60];
+var W=200,H=150,VW=8,VH=6,PPU=W/VW,U2CM=4.5;
+var DOUGH=new THREE.Color(0xe2be82);
+var BSTOPS=[[0,0xe2be82],[0.4,0xd9a257],[0.6,0xc4853a],[0.8,0x9a5a24],[1.0,0x5e3516],[1.3,0x2b1810]].map(function(s){
+  var c=new THREE.Color(s[1]); return {b:s[0],c:c,l:(0.299*c.r+0.587*c.g+0.114*c.b)*255};
+});
+function brownColor(b,out){
+  b=Math.max(0,Math.min(1.3,b));
+  for(var i=1;i<BSTOPS.length;i++){ if(b<=BSTOPS[i].b){ var a=BSTOPS[i-1],z=BSTOPS[i]; return out.copy(a.c).lerp(z.c,(b-a.b)/(z.b-a.b)); } }
+  return out.copy(BSTOPS[BSTOPS.length-1].c);
+}
+function lumToB(l){
+  if(l>=BSTOPS[0].l) return 0;
+  for(var i=1;i<BSTOPS.length;i++){ if(l>=BSTOPS[i].l){ var a=BSTOPS[i-1],z=BSTOPS[i]; return a.b+(z.b-a.b)*(a.l-l)/(a.l-z.l); } }
+  return 1.3;
+}
+function ss(a,b,x){ var t=Math.max(0,Math.min(1,(x-a)/(b-a))); return t*t*(3-2*t); }
+function clamp(x,a,b){ return Math.max(a,Math.min(b,x)); }
+function rnd(a,b){ return a+Math.random()*(b-a); }
+function gauss(){ return (Math.random()+Math.random()+Math.random()-1.5)/0.5; }
+function gramsToR(g){ return Math.cbrt(3*g/(4*Math.PI*1.1))/U2CM; }
+function fmt(x,d){ return x.toFixed(d===undefined?0:d).replace('.',','); }
+
+/* ---------- escena ---------- */
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate=false;
+var scene=new THREE.Scene();
+var sceneBg=new THREE.Color(0xcfe0f7), DET_BG=new THREE.Color(0x0a1a4a);
+scene.background=sceneBg;
+var camera=new THREE.PerspectiveCamera(42,1,0.1,300); camera.layers.enableAll();
+var detCam=new THREE.OrthographicCamera(-VW/2,VW/2,VH/2,-VH/2,0.1,40); detCam.up.set(0,0,-1); detCam.layers.set(2);
+var rt=new THREE.WebGLRenderTarget(W,H);
+var pix=new Uint8Array(W*H*4);
+
+var amb=new THREE.AmbientLight(0xffffff,0.62); amb.layers.enable(2); scene.add(amb);
+var dir=new THREE.DirectionalLight(0xffffff,0.52); dir.layers.enable(2); dir.castShadow=true;
+dir.shadow.mapSize.set(1024,1024); dir.shadow.bias=-0.001; dir.shadow.normalBias=0.03;
+var sc=dir.shadow.camera; sc.left=-13; sc.right=13; sc.top=13; sc.bottom=-13; sc.near=1; sc.far=45;
+scene.add(dir); scene.add(dir.target);
+var ovenLight=new THREE.PointLight(0xffb060,0,14); ovenLight.layers.enable(2); ovenLight.position.set(SX[3],4.3,0); scene.add(ovenLight);
+
+function M(geo,color,o){
+  o=o||{};
+  var mat=o.mat||new THREE.MeshLambertMaterial({color:color,side:o.side||THREE.FrontSide,transparent:!!o.opacity,opacity:o.opacity||1});
+  var m=new THREE.Mesh(geo,mat);
+  if(o.p) m.position.set(o.p[0],o.p[1],o.p[2]);
+  m.castShadow=o.cast!==false&&!o.opacity; m.receiveShadow=o.recv!==false;
+  if(o.seen) m.layers.enable(2);
+  (o.parent||scene).add(m); return m;
+}
+function box(w,h,d,color,p,o){ o=o||{}; o.p=p; return M(new THREE.BoxGeometry(w,h,d),color,o); }
+function cyl(r,h,color,p,o){ o=o||{}; o.p=p; return M(new THREE.CylinderGeometry(r,r,h,28),color,o); }
+
+var floor=M(new THREE.PlaneGeometry(300,90),0x9db4d8,{p:[30,-4,0],cast:false}); floor.rotation.x=-Math.PI/2;
+function table(x){
+  box(16,0.5,10,0xc3d0e8,[x,-0.25,0]);
+  [[-7.4,-4.4],[7.4,-4.4],[-7.4,4.4],[7.4,4.4]].forEach(function(q){ box(0.5,3.5,0.5,0x7f93b8,[x+q[0],-2.25,q[1]]); });
+}
+table(SX[0]); table(SX[2]);
+
+/* estación 1 y 2: bol */
+var bowlG=new THREE.Group(); scene.add(bowlG);
+(function(){
+  var pts=[[0,0.1],[1.6,0.1],[2.4,0.9],[2.7,1.9],[2.86,1.9],[2.55,0.8],[1.75,0],[0,0]].map(function(p){return new THREE.Vector2(p[0],p[1]);});
+  M(new THREE.LatheGeometry(pts,48),0x3f6fc9,{side:THREE.DoubleSide,seen:true,parent:bowlG});
+  ING.forEach(function(g,i){
+    var x=-5+i*2;
+    cyl(0.55,1.3,g.c,[x,0.65,-3.4]); cyl(0.6,0.18,0x2c3e63,[x,1.39,-3.4]);
+  });
+})();
+var baseMat=new THREE.MeshLambertMaterial({color:0xf4efe4});
+var baseDisc=M(new THREE.CylinderGeometry(1,1,1,40),0,{mat:baseMat,seen:true,parent:bowlG,cast:false}); baseDisc.visible=false;
+var baseFrom=new THREE.Color(0xf4efe4);
+var blobGeo=new THREE.SphereGeometry(1,12,9), blobs=[];
+ING.forEach(function(g){
+  for(var i=0;i<g.k;i++){
+    var chip=g.id==='chispas';
+    var m=M(blobGeo,g.c,{seen:true,parent:bowlG,cast:false});
+    m.visible=false;
+    blobs.push({m:m,ing:g.id,chip:chip,c0:new THREE.Color(g.c),ang:rnd(0,6.283),rad:Math.sqrt(Math.random())*1.85,
+      ph:rnd(0,6.283),size:chip?rnd(0.11,0.16):rnd(0.26,0.42),vis:0,t0:0,lift:rnd(0,0.12)});
+  }
+});
+var spat=new THREE.Group(); bowlG.add(spat);
+(function(){
+  var h=cyl(0.09,3.4,0xdfe7f5,[1.0,2.3,0],{parent:spat}); h.rotation.z=-0.28;
+  box(0.75,1.0,0.14,0x8fb0ff,[0.62,0.8,0],{parent:spat});
+})();
+spat.visible=false;
+var drops=[], dropGeo=new THREE.SphereGeometry(0.11,8,6);
+
+/* brazo del detector (se mueve entre estaciones) */
+var gantry=new THREE.Group(); scene.add(gantry);
+box(0.3,7,0.3,0x52617d,[0,3.5,-4.3],{parent:gantry});
+box(0.3,0.3,4.6,0x52617d,[0,6.9,-2.1],{parent:gantry});
+box(1.1,0.6,1.1,0x13223d,[0,6.7,0],{parent:gantry});
+cyl(0.28,0.3,0xff7fa8,[0,6.3,0],{parent:gantry});
+(function(){
+  var c=new THREE.Mesh(new THREE.ConeGeometry(3.1,6,36,1,true),new THREE.MeshBasicMaterial({color:0x8fd8ff,transparent:true,opacity:0.11,side:THREE.DoubleSide,depthWrite:false}));
+  c.position.y=3.25; gantry.add(c);
+})();
+
+/* estación 3: bandeja */
+var trayG=new THREE.Group(); scene.add(trayG);
+box(7.7,0.12,5.7,0x3d5a8c,[0,-0.06,0],{parent:trayG,seen:true});
+box(7.3,0.03,5.3,0x5b7fc4,[0,0.012,0],{parent:trayG,seen:true,cast:false});
+var cookieGeo=new THREE.SphereGeometry(1,26,16), chipGeo=new THREE.SphereGeometry(0.13,8,6);
+var chipMat=new THREE.MeshLambertMaterial({color:0x3b2216});
+var cookies=[];
+function addChips(mesh,n){
+  for(var i=0;i<n;i++){
+    var v=new THREE.Vector3(rnd(-1,1),rnd(0.55,1),rnd(-1,1)).normalize().multiplyScalar(0.96);
+    var c=new THREE.Mesh(chipGeo,chipMat); c.position.copy(v); c.layers.enable(2); mesh.add(c);
+  }
+}
+function shapeCookie(c){
+  var k=1+0.9*c.s, R=c.r*k, Hh=c.r/(k*k)*(1+0.35*c.puff);
+  c.m.scale.set(R,Hh,R); c.m.position.y=0.03+Hh*(1-0.45*c.s);
+  brownColor(c.B,c.m.material.color);
+}
+function addCookie(g){
+  if(cookies.length>=12) return;
+  var i=cookies.length, col=i%4, row=(i/4)|0;
+  var m=M(cookieGeo,0xe2be82,{seen:true,parent:trayG});
+  m.position.set((col-1.5)*1.75,0,(row-1)*1.7); m.rotation.y=rnd(0,6.28);
+  addChips(m,6);
+  var c={m:m,g:g,r:gramsToR(g),s:0,puff:0,Ts:20,Ti:20,B:0,hot:(row===0?12:row===1?0:-8)+(col-1.5)*3};
+  cookies.push(c); shapeCookie(c);
+}
+function removeCookie(){
+  var c=cookies.pop(); if(!c) return;
+  trayG.remove(c.m); c.m.material.dispose();
+}
+function resetBake(){
+  S.baking=false; S.bakeDone=false; S.bakeMin=0;
+  cookies.forEach(function(c){ c.s=0; c.puff=0; c.Ts=20; c.Ti=20; c.B=0; shapeCookie(c); });
+  $('bakeBtn').disabled=false; $('pullBtn').disabled=true;
+  $('bkTime').textContent='0:00 min'; $('bkTs').textContent='20 °C';
+  Array.prototype.forEach.call($('rx').children,function(li){ li.className=''; });
+  $('bakeNote').textContent='Un segundo de simulación equivale a 30 segundos reales de horno.';
+}
+
+/* estación 4: horno */
+var doorPivot=new THREE.Group(), elems=[];
+(function(){
+  var x=SX[3], shell=0x2c3e63, o={cast:false};
+  box(10.4,4,8,0x1e2b49,[x,-2,0],o);
+  box(10.4,1.5,8,shell,[x,0.75,0],o);
+  box(0.6,3.4,8,shell,[x-4.9,3.2,0],o); box(0.6,3.4,8,shell,[x+4.9,3.2,0],o);
+  box(10.4,3.4,0.6,shell,[x,3.2,-3.7],o);
+  box(10.4,0.7,8,shell,[x,5.25,0],o);
+  for(var i=0;i<2;i++){
+    var e=cyl(0.09,8.6,0x333333,[x,4.65,i?1.6:-1.6],o); e.rotation.z=Math.PI/2;
+    e.material=new THREE.MeshBasicMaterial({color:0x333333}); elems.push(e);
+  }
+  doorPivot.position.set(x,1.5,4.05); scene.add(doorPivot);
+  box(9.2,3.4,0.12,0x9fc4ff,[0,1.7,0],{parent:doorPivot,opacity:0.2,cast:false,recv:false});
+  box(9.6,0.25,0.2,0x13223d,[0,3.45,0],{parent:doorPivot,cast:false});
+  box(3,0.14,0.3,0xdfe7f5,[0,3.1,0.25],{parent:doorPivot,cast:false});
+})();
+var doorAng=1.45;
+
+/* estación 5: banda */
+var stripes=[], prod=[], paddle, paddleT=0, spawnDist=0;
+var brokenGeo=new THREE.SphereGeometry(1,22,14,0,Math.PI*2*0.62);
+(function(){
+  var x=SX[4];
+  box(20,0.5,4,0x2f5d9e,[x,0.15,0],{seen:true});
+  box(20,0.3,0.2,0x8fa0bf,[x,0.5,2.1],{seen:true}); box(20,0.3,0.2,0x8fa0bf,[x,0.5,-2.1],{seen:true});
+  [-9,-3,3,9].forEach(function(dx){ box(0.4,3.9,3.6,0x52617d,[x+dx,-2.05,0]); });
+  for(var i=0;i<14;i++) stripes.push(box(0.18,0.02,3.9,0x26508a,[x-10+i*(20/14),0.41,0],{seen:true,cast:false}));
+  paddle=box(1.3,0.5,0.25,0xd6336c,[x+4.9,0.78,-2.5]);
+  box(2.8,2.6,2.6,0xc4245e,[x+5.3,-2.7,3.9]); box(2.4,0.06,2.2,0x5c0f2b,[x+5.3,-1.38,3.9],{cast:false});
+  box(3,2.6,3,0x17875a,[x+11.6,-2.7,0]); box(2.6,0.06,2.6,0x0a3d28,[x+11.6,-1.38,0],{cast:false});
+})();
+function spawnProd(){
+  var u=Math.random(), base=S.bakedOnce?clamp(S.bakeAvg,0.1,1.2):0.6, broken=false, b;
+  if(u<0.1){ b=0.15+gauss()*0.06; }
+  else if(u<0.2){ b=1.05+gauss()*0.08; }
+  else { b=base+gauss()*0.07; if(u<0.3) broken=true; }
+  b=clamp(b,0,1.3);
+  var m=M(broken?brokenGeo:cookieGeo,0,{mat:new THREE.MeshLambertMaterial({side:broken?THREE.DoubleSide:THREE.FrontSide}),seen:true});
+  var r=0.62+gauss()*0.04;
+  m.scale.set(r,0.24,r); m.position.set(SX[4]-9.6,0.4+0.24*0.55,rnd(-1.15,1.15)); m.rotation.y=rnd(0,6.28);
+  brownColor(b,m.material.color);
+  if(!broken) addChips(m,5);
+  prod.push({m:m,b:b,truth:broken?'rota':b<0.4?'cruda':b>0.8?'quemada':'ok',votes:{ok:0,cruda:0,quemada:0,rota:0},decided:false,reject:false,pushed:false,vy:0,vz:0});
+}
+function clearProd(){ prod.forEach(function(c){ scene.remove(c.m); c.m.material.dispose(); }); prod.length=0; }
+
+/* ---------- cámara principal ---------- */
+var VIEW=[
+ {t:[0,0.8,0],d:13,yaw:0,pitch:0.74},{t:[0,0.8,0],d:13,yaw:0,pitch:0.74},
+ {t:[20,0.3,0],d:13,yaw:0,pitch:0.82},{t:[40,2.7,0],d:14.5,yaw:0,pitch:0.2},{t:[60,0.4,0],d:18,yaw:0.28,pitch:0.6}
+];
+var orb={yaw:0,pitch:0.74,zoom:1}, camT=new THREE.Vector3(0,0.8,0), camP=new THREE.Vector3(0,9,10), aspect=1;
+var tmpV=new THREE.Vector3(), reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function desiredCam(out){
+  var v=VIEW[S.stage], d=v.d*orb.zoom*(aspect<1.25?Math.pow(1.25/aspect,0.8):1);
+  return out.set(v.t[0]+d*Math.sin(orb.yaw)*Math.cos(orb.pitch), v.t[1]+d*Math.sin(orb.pitch), v.t[2]+d*Math.cos(orb.yaw)*Math.cos(orb.pitch));
+}
+(function(){
+  var down=false,lx=0,ly=0;
+  canvas.addEventListener('pointerdown',function(e){ down=true; lx=e.clientX; ly=e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove',function(e){
+    if(!down) return;
+    orb.yaw-=(e.clientX-lx)*0.007; orb.pitch=clamp(orb.pitch+(e.clientY-ly)*0.006,0.06,1.45); lx=e.clientX; ly=e.clientY;
+  });
+  var up=function(){ down=false; };
+  canvas.addEventListener('pointerup',up); canvas.addEventListener('pointercancel',up);
+  canvas.addEventListener('wheel',function(e){ e.preventDefault(); orb.zoom=clamp(orb.zoom*(e.deltaY>0?1.08:0.93),0.5,1.8); },{passive:false});
+})();
+function resize(){
+  var r=canvas.parentElement.getBoundingClientRect(), w=Math.max(50,r.width), h=Math.max(50,r.height);
+  renderer.setSize(w,h,false); aspect=w/h; camera.aspect=aspect; camera.updateProjectionMatrix();
+}
+if(window.ResizeObserver) new ResizeObserver(resize).observe(canvas.parentElement); else window.addEventListener('resize',resize);
+resize();
+function applyTheme(){
+  var cs=getComputedStyle(document.documentElement);
+  try{ sceneBg.set(cs.getPropertyValue('--scene').trim()); floor.material.color.set(cs.getPropertyValue('--floor').trim()); }catch(e){}
+}
+applyTheme();
+if(window.matchMedia) { var mq=window.matchMedia('(prefers-color-scheme: dark)'); if(mq.addEventListener) mq.addEventListener('change',applyTheme); }
+new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- lógica de cada paso ---------- */
+function addIngredient(id,instant){
+  if(S.added[id]) return;
+  var g=ING.filter(function(x){return x.id===id;})[0];
+  S.added[id]=true; S.nAdded++;
+  var now=performance.now()/1000;
+  blobs.forEach(function(b){ if(b.ing===id){ b.t0=instant?0:now+0.45+Math.random()*0.4; if(instant) b.vis=1; } });
+  var r=0,gg=0,bb=0,n=0;
+  ING.forEach(function(x){ if(S.added[x.id]&&x.id!=='chispas'){ var c=new THREE.Color(x.c); r+=c.r*x.k; gg+=c.g*x.k; bb+=c.b*x.k; n+=x.k; } });
+  if(n) baseFrom.setRGB(r/n,gg/n,bb/n);
+  if(!instant){
+    var mat=new THREE.MeshLambertMaterial({color:g.c});
+    for(var i=0;i<26;i++){
+      var m=new THREE.Mesh(dropGeo,mat); m.position.set(rnd(-0.9,0.9),rnd(4.5,7.5),rnd(-0.9,0.9)); m.layers.enable(2);
+      scene.add(m); drops.push({m:m,v:0});
+    }
+    $('ingNote').textContent=g.note;
+  }
+  var btn=document.querySelector('.ing[data-id="'+id+'"]'); if(btn) btn.setAttribute('aria-pressed','true');
+}
+function emptyBowl(){
+  S.added={}; S.nAdded=0; S.fill=0; S.mix=0; S.mixing=false; S.mixReady=false; S.std0=null; S.homog=0;
+  blobs.forEach(function(b){ b.vis=0; b.t0=0; b.m.visible=false; });
+  Array.prototype.forEach.call(document.querySelectorAll('.ing'),function(b){ b.setAttribute('aria-pressed','false'); });
+  $('ingNote').textContent='Toca un ingrediente para echarlo al bol y ver qué hace en la receta.';
+  setMixing(false);
+}
+function setMixing(on){
+  S.mixing=on; $('mixBtn').setAttribute('aria-pressed',on?'true':'false'); $('mixBtn').textContent=on?'Detener':'Mezclar';
+}
+function updateBowl(dt,t){
+  var target=S.nAdded/6; S.fill+=(target-S.fill)*Math.min(1,dt*3);
+  var L=0.15+0.7*S.fill, mixT=ss(0,1,S.mix);
+  baseDisc.visible=S.nAdded>0;
+  var rad=1.6+0.8*(L-0.1)/0.8-0.04;
+  baseDisc.scale.set(rad,L-0.08,rad); baseDisc.position.y=0.1+(L-0.08)/2;
+  baseMat.color.copy(baseFrom).lerp(DOUGH,mixT);
+  if(S.mixing){ S.mix+=dt/8; spat.rotation.y-=dt*3.2; }
+  for(var i=0;i<blobs.length;i++){
+    var b=blobs[i];
+    if(!S.added[b.ing]){ b.m.visible=false; continue; }
+    if(t>=b.t0) b.vis=Math.min(1,b.vis+dt*4);
+    if(S.mixing) b.ang-=dt*(2.4-b.rad*0.5);
+    var r=clamp(b.rad+(S.mix>0?0.25*Math.sin(S.mix*9+b.ph):0),0,1.9);
+    var flat=b.chip?0.8:1-0.62*mixT, sz=b.size*b.vis;
+    b.m.visible=b.vis>0.01;
+    b.m.scale.set(sz,sz*flat*0.7,sz);
+    b.m.position.set(r*Math.cos(b.ang),L+0.04+b.lift*(1-mixT)+(b.chip?0.05:0),r*Math.sin(b.ang));
+    if(!b.chip) b.m.material.color.copy(b.c0).lerp(DOUGH,mixT);
+  }
+  for(var j=drops.length-1;j>=0;j--){
+    var d=drops[j]; d.v+=22*dt; d.m.position.y-=d.v*dt;
+    if(d.m.position.y<L+0.2){ scene.remove(d.m); drops.splice(j,1); }
+  }
+}
+function updateBake(dt){
+  doorAng+=((S.baking?0:1.45)-doorAng)*Math.min(1,dt*5); doorPivot.rotation.x=doorAng;
+  var glow=S.baking?clamp((S.ovenT-80)/160,0.3,1):0;
+  elems.forEach(function(e){ e.material.color.setRGB(0.2+0.8*glow,0.2+0.25*glow,0.2-0.1*glow); });
+  ovenLight.intensity=S.baking?0.55:0;
+  if(!S.baking) return;
+  var dm=dt*0.5; S.bakeMin+=dm;
+  var sum=0;
+  cookies.forEach(function(c){
+    var Tl=S.ovenT+c.hot, k=0.28/Math.pow(c.g/30,0.5);
+    c.Ts+=k*(Tl-c.Ts)*dm;
+    c.Ti+=0.3*(Math.min(c.Ts,100)-c.Ti)*dm;
+    if(c.Ts>35&&c.Ts<90) c.s=Math.min(S.mix>1.6?0.7:1,c.s+0.65*dm);
+    c.puff=ss(80,105,c.Ts)-0.6*ss(110,140,c.Ts);
+    if(c.Ts>120) c.B=Math.min(1.3,c.B+0.03*Math.exp((c.Ts-140)/22)*dm);
+    shapeCookie(c); sum+=c.Ts;
+  });
+  var mean=cookies.length?sum/cookies.length:20, mm=Math.floor(S.bakeMin), sec=Math.floor((S.bakeMin-mm)*60);
+  $('bkTime').textContent=mm+':'+(sec<10?'0':'')+sec+' min';
+  $('bkTs').textContent=Math.round(mean)+' °C';
+  var li=$('rx').children; for(var i=0;i<RX.length;i++) li[i].className=mean>=RX[i][0]?'on':'';
+}
+function pullTray(){
+  if(!S.baking) return;
+  S.baking=false; S.bakeDone=true; S.bakedOnce=true;
+  var n={cruda:0,ok:0,quemada:0}, raw=0, sum=0;
+  cookies.forEach(function(c){ sum+=c.B; var k=c.B<0.4?'cruda':c.B>0.8?'quemada':'ok'; n[k]++; if(k!=='cruda'&&c.Ti<88) raw++; });
+  S.bakeAvg=cookies.length?sum/cookies.length:0.6;
+  var msg='Resultado: '+n.ok+' doradas, '+n.cruda+' crudas y '+n.quemada+' quemadas. ';
+  if(raw) msg+=raw+' se ven cocidas pero tienen el centro crudo: el horno estaba tan caliente que la superficie se doró antes de que el calor llegara al interior. La cámara no pudo verlo. ';
+  if(n.quemada&&n.cruda) msg+='El horno no calienta parejo: el fondo va más rápido que la puerta.';
+  else if(n.quemada) msg+='Saca la bandeja antes o baja la temperatura.';
+  else if(n.cruda) msg+=(S.ovenT<145?'Bajo 140 °C casi no hay reacción de Maillard: sube la temperatura.':'Les faltó tiempo de horno.');
+  else if(!raw) msg+='¡Bandeja pareja! Así se verá tu línea de producción.';
+  if(S.mix>1.6) msg+=' La masa estaba sobremezclada: por el gluten se extendieron menos.';
+  $('bakeNote').textContent=msg;
+  $('bakeBtn').disabled=true; $('pullBtn').disabled=true;
+}
+function updateProd(dt){
+  paddleT=Math.max(0,paddleT-dt*2.5); paddle.position.z=-2.5+Math.sin(paddleT*Math.PI)*2.4;
+  var x0=SX[4], v=S.beltOn?S.speed:0;
+  stripes.forEach(function(s){ s.position.x+=v*dt; if(s.position.x>x0+10) s.position.x-=20; });
+  if(S.beltOn){ spawnDist+=v*dt; if(spawnDist>=2.6){ spawnDist=0; spawnProd(); } }
+  for(var i=prod.length-1;i>=0;i--){
+    var c=prod[i], p=c.m.position, onBelt=Math.abs(p.z)<2.15&&p.x<x0+10;
+    if(onBelt) p.x+=v*dt; else { c.vy-=18*dt; p.y+=c.vy*dt; if(p.x>=x0+10) p.x+=Math.max(v,1.2)*dt; }
+    if(!c.decided&&p.x>=x0+3.5){
+      c.decided=true;
+      var best='ok',bn=0,tot=0; for(var k in c.votes){ tot+=c.votes[k]; if(c.votes[k]>bn){ bn=c.votes[k]; best=k; } }
+      if(!tot) best='ok';
+      c.reject=best!=='ok';
+      var bad=c.truth!=='ok';
+      if(c.reject) S.stats[bad?'tp':'fp']++; else S.stats[bad?'fn':'tn']++;
+    }
+    if(c.reject&&!c.pushed&&p.x>=x0+4.5){ c.pushed=true; c.vz=5; paddleT=1; }
+    if(c.pushed) p.z+=c.vz*dt;
+    if(p.y<-1.3){ scene.remove(c.m); c.m.material.dispose(); prod.splice(i,1); }
+  }
+}
+
+/* ---------- detector: visión por computador sobre píxeles reales ---------- */
+var camCtx=$('cam').getContext('2d'), off=document.createElement('canvas'); off.width=W; off.height=H;
+var offCtx=off.getContext('2d'), img=offCtx.createImageData(W,H);
+var Lum=new Float32Array(W*H), mask=new Uint8Array(W*H), lab=new Int32Array(W*H), stack=[];
+var A={};
+function renderDetector(){
+  var a=amb.intensity,d=dir.intensity,o=ovenLight.intensity;
+  amb.intensity=1; dir.intensity=0; ovenLight.intensity=0; scene.background=DET_BG; gantry.visible=false;
+  detCam.position.set(SX[S.stage],14,0); detCam.lookAt(SX[S.stage],0,0);
+  renderer.setRenderTarget(rt); renderer.render(scene,detCam);
+  renderer.readRenderTargetPixels(rt,0,0,W,H,pix);
+  renderer.setRenderTarget(null);
+  amb.intensity=a; dir.intensity=d; ovenLight.intensity=o; scene.background=sceneBg; gantry.visible=S.stage!==3;
+}
+function findBlobs(){
+  lab.fill(0); var out=[],n=0;
+  for(var p=0;p<W*H;p++){
+    if(!mask[p]||lab[p]) continue;
+    n++; var area=0,x0=W,x1=0,y0=H,y1=0,sx=0,sy=0,ls=[];
+    stack.length=0; stack.push(p); lab[p]=n;
+    while(stack.length){
+      var q=stack.pop(), x=q%W, y=(q/W)|0;
+      area++; sx+=x; sy+=y; if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; ls.push(Lum[q]);
+      if(x>0&&mask[q-1]&&!lab[q-1]){ lab[q-1]=n; stack.push(q-1); }
+      if(x<W-1&&mask[q+1]&&!lab[q+1]){ lab[q+1]=n; stack.push(q+1); }
+      if(y>0&&mask[q-W]&&!lab[q-W]){ lab[q-W]=n; stack.push(q-W); }
+      if(y<H-1&&mask[q+W]&&!lab[q+W]){ lab[q+W]=n; stack.push(q+W); }
+    }
+    if(area<30) continue;
+    ls.sort(function(a,b){return b-a;});
+    var m=Math.max(1,Math.floor(ls.length*0.6)), s=0; for(var i=0;i<m;i++) s+=ls[i];
+    var bw=x1-x0+1, bh=y1-y0+1;
+    out.push({area:area,x0:x0,x1:x1,y0:y0,y1:y1,cx:sx/area,cy:sy/area,lum:s/m,fill:area/(bw*bh),asp:Math.max(bw,bh)/Math.min(bw,bh)});
+  }
+  return out;
+}
+var COL={ok:'#4FE3A1',warn:'#FFD34D',bad:'#FF7FA8'};
+function drawBox(b,color,label){
+  camCtx.strokeStyle=color; camCtx.lineWidth=2;
+  camCtx.strokeRect(b.x0*2-2,b.y0*2-2,(b.x1-b.x0+1)*2+4,(b.y1-b.y0+1)*2+4);
+  camCtx.font='bold 12px sans-serif'; var w=camCtx.measureText(label).width+6, ty=Math.max(14,b.y0*2-4);
+  camCtx.fillStyle=color; camCtx.fillRect(b.x0*2-2,ty-12,w,14);
+  camCtx.fillStyle='#0A1A4A'; camCtx.fillText(label,b.x0*2+1,ty-1);
+}
+function analyze(){
+  renderDetector();
+  var st=S.stage, noise=st===4?S.noise:0, d=img.data, j=0;
+  for(var y=0;y<H;y++){
+    var src=(H-1-y)*W*4;
+    for(var x=0;x<W;x++,j++,src+=4){
+      var r=pix[src],g=pix[src+1],b=pix[src+2];
+      if(noise){ r=clamp(r+(Math.random()*2-1)*noise,0,255); g=clamp(g+(Math.random()*2-1)*noise,0,255); b=clamp(b+(Math.random()*2-1)*noise,0,255); }
+      d[j*4]=r; d[j*4+1]=g; d[j*4+2]=b; d[j*4+3]=255;
+      Lum[j]=0.299*r+0.587*g+0.114*b; mask[j]=r>b+12?1:0;
+    }
+  }
+  offCtx.putImageData(img,0,0);
+  camCtx.imageSmoothingEnabled=false; camCtx.drawImage(off,0,0,400,300);
+  A={stage:st};
+  if(st<=1){
+    var R=1.5*PPU, n=0,mr=0,mg=0,mb=0, k=0,sr=0,sb=0,sr2=0,sb2=0;
+    for(y=0;y<H;y++) for(x=0;x<W;x++){
+      var dx=x-W/2, dy=y-H/2; if(dx*dx+dy*dy>R*R) continue;
+      var i4=(y*W+x)*4, r2=d[i4], g2=d[i4+1], b2=d[i4+2];
+      n++; mr+=r2; mg+=g2; mb+=b2;
+      if(Lum[y*W+x]>52){ var sum=r2+g2+b2, cr=r2/sum, cb=b2/sum; k++; sr+=cr; sb+=cb; sr2+=cr*cr; sb2+=cb*cb; }
+    }
+    A.rgb=[Math.round(mr/n),Math.round(mg/n),Math.round(mb/n)];
+    A.std=k?Math.sqrt(Math.max(0,sr2/k-(sr/k)*(sr/k))+Math.max(0,sb2/k-(sb/k)*(sb/k))):0;
+    if(st===1){
+      if(S.mix<0.01&&A.std>0.004) S.std0=A.std;
+      var s0=S.std0||0.05; S.homog=clamp(1-A.std/s0,0,1);
+      if(S.homog>=0.9) S.mixReady=true;
+    }
+    camCtx.setLineDash([6,5]); camCtx.strokeStyle=COL.warn; camCtx.lineWidth=2;
+    camCtx.beginPath(); camCtx.arc(200,150,R*2,0,6.2832); camCtx.stroke(); camCtx.setLineDash([]);
+    camCtx.font='bold 12px sans-serif'; camCtx.fillStyle=COL.warn; camCtx.fillText('ROI',200-R*2,150-R*2+4);
+  } else {
+    var bl=findBlobs(); A.blobs=bl;
+    if(st===2){
+      A.n=bl.length; A.inTol=0; A.dsum=0;
+      bl.forEach(function(b){
+        var dcm=2*Math.sqrt(b.area/Math.PI)/PPU*U2CM, gr=1.1*4/3*Math.PI*Math.pow(dcm/2,3);
+        var ok=Math.abs(gr-30)<=6; if(ok) A.inTol++; A.dsum+=dcm;
+        drawBox(b,ok?COL.ok:COL.warn,Math.round(gr)+' g');
+      });
+    } else if(st===3){
+      A.c={cruda:0,ok:0,quemada:0,pegadas:0};
+      bl.forEach(function(b){
+        if(b.asp>1.45||b.fill<0.6){ A.c.pegadas++; drawBox(b,COL.bad,'pegadas'); return; }
+        var bi=lumToB(b.lum), k2=bi<0.4?'cruda':bi>0.8?'quemada':'ok'; A.c[k2]++;
+        drawBox(b,k2==='ok'?COL.ok:k2==='cruda'?COL.warn:COL.bad,k2==='ok'?'dorada':k2);
+      });
+    } else {
+      bl.forEach(function(b){
+        if(b.x0<=1||b.x1>=W-2) return;
+        var cls=(b.fill<0.66||b.asp>1.35)?'rota':(function(){ var bi=lumToB(b.lum); return bi<0.4?'cruda':bi>0.8?'quemada':'ok'; })();
+        drawBox(b,cls==='ok'?COL.ok:cls==='cruda'?COL.warn:COL.bad,cls==='ok'?'buena':cls);
+        var wx=SX[4]+(b.cx/W-0.5)*VW, wz=(b.cy/H-0.5)*VH, best=null, bd=0.9;
+        prod.forEach(function(c){ var dd=Math.hypot(c.m.position.x-wx,c.m.position.z-wz); if(dd<bd){ bd=dd; best=c; } });
+        if(best&&!best.decided) best.votes[cls]++;
+      });
+      camCtx.strokeStyle=COL.bad; camCtx.setLineDash([4,4]); camCtx.beginPath();
+      var lx=(3.5/VW+0.5)*400; camCtx.moveTo(lx,0); camCtx.lineTo(lx,300); camCtx.stroke(); camCtx.setLineDash([]);
+    }
+  }
+  updateReadout();
+}
+
+/* ---------- interfaz ---------- */
+function gate(){
+  switch(S.stage){
+    case 0: return S.nAdded<6?('Faltan '+(6-S.nAdded)+' ingredientes en el bol.'):'';
+    case 1: return S.mixReady?'':'Mezcla hasta que el detector marque 90 % de homogeneidad.';
+    case 2: return cookies.length<6?'Pon al menos 6 bolas en la bandeja.':'';
+    case 3: return S.bakeDone?'':'Hornea y saca la bandeja para continuar.';
+  }
+  return '';
+}
+var lastRead='';
+function updateReadout(){
+  var h='', st=S.stage;
+  if(st===0){
+    h='<dl><dt>Ingredientes en el bol</dt><dd>'+S.nAdded+' de 6</dd><dt>Color promedio del ROI</dt><dd><span class="sw" style="background:rgb('+A.rgb.join(',')+')"></span>R '+A.rgb[0]+', G '+A.rgb[1]+', B '+A.rgb[2]+'</dd></dl>';
+  } else if(st===1){
+    var p=Math.round(S.homog*100);
+    h='<dl><dt>Homogeneidad del color</dt><dd>'+p+' %</dd><dt>Variación de cromaticidad</dt><dd>'+fmt(A.std*1000,1)+'</dd></dl><div class="bar" style="margin-top:8px"><span style="width:'+p+'%"></span></div>'+
+      '<p class="state '+(S.mix>1.6?'bad':S.mixReady?'ok':'')+'">'+(S.mix>1.6?'Color parejo, pero el tiempo indica sobremezcla':S.mixReady?'Masa lista: color parejo':p>50?'Casi: todavía hay vetas':'Grumos de colores distintos')+'</p>';
+  } else if(st===2){
+    h='<dl><dt>Bolas detectadas</dt><dd>'+A.n+'</dd><dt>Dentro de 30 g ± 6 g</dt><dd>'+A.inTol+'</dd><dt>Diámetro promedio</dt><dd>'+(A.n?fmt(A.dsum/A.n,1)+' cm':'sin datos')+'</dd></dl>'+
+      '<p class="state '+(A.n&&A.inTol===A.n?'ok':'')+'">'+(A.n===0?'Bandeja vacía: pon la primera bola':A.inTol===A.n?'Porciones uniformes':'Hay bolas fuera de medida: se cocinarán distinto')+'</p>';
+  } else if(st===3){
+    var c=A.c;
+    h='<dl><dt>Crudas</dt><dd>'+c.cruda+'</dd><dt>Doradas</dt><dd>'+c.ok+'</dd><dt>Quemadas</dt><dd>'+c.quemada+'</dd>'+(c.pegadas?'<dt>Manchas pegadas</dt><dd>'+c.pegadas+'</dd>':'')+'</dl>'+
+      '<p class="state '+(c.quemada?'bad':c.ok&&!c.cruda?'ok':'')+'">'+(c.quemada?'Hay galletas quemadas':c.ok&&!c.cruda?'Todas doradas: es el momento de sacarlas':c.ok?'Las del fondo ya están doradas':'Superficie todavía clara')+'</p>';
+  } else {
+    var s=S.stats, tot=s.tn+s.fp+s.fn+s.tp;
+    h='<dl><dt>Galletas inspeccionadas</dt><dd>'+tot+'</dd><dt>Aciertos del detector</dt><dd>'+(tot?Math.round(100*(s.tn+s.tp)/tot)+' %':'sin datos')+'</dd></dl>'+
+      '<table class="cm"><tr><th></th><th>Detector: buena</th><th>Detector: defecto</th></tr>'+
+      '<tr><th>Era buena</th><td class="ok">'+s.tn+'</td><td class="bad">'+s.fp+'</td></tr>'+
+      '<tr><th>Era defectuosa</th><td class="bad">'+s.fn+'</td><td class="ok">'+s.tp+'</td></tr></table>';
+  }
+  if(h!==lastRead){ $('readout').innerHTML=h; lastRead=h; }
+  if(st===1){
+    $('mixBar').style.width=Math.min(100,S.mix/2*100)+'%';
+    $('mixNote').textContent=S.mix>1.6?'Te pasaste: tanto movimiento desarrolló mucho gluten y las galletas saldrán más duras y menos extendidas. La cámara no lo nota porque el color no cambia.':
+      S.mixReady?'Listo. Detén la mezcla: seguir batiendo solo forma más gluten.':'Mezcla y mira cómo cambia la lectura del detector.';
+  }
+  var gt=gate(); $('gate').textContent=gt; $('next').disabled=!!gt;
+}
+function setStage(n){
+  n=clamp(n,0,4);
+  if(n>=1&&S.nAdded<6) ING.forEach(function(g){ addIngredient(g.id,true); });
+  if(n>=2&&!S.mixReady){ S.mix=Math.max(S.mix,1); S.mixReady=true; }
+  if(n>=3&&cookies.length<1){ for(var i=0;i<12;i++) addCookie(30); }
+  if(n!==1) setMixing(false);
+  if(n!==3&&S.baking) resetBake();
+  if(n===2&&(S.bakeDone||cookies.some(function(c){return c.s>0;}))) resetBake();
+  if(n!==4){ S.beltOn=false; $('beltBtn').setAttribute('aria-pressed','false'); $('beltBtn').textContent='Encender la banda'; }
+  S.stage=n;
+  var v=VIEW[n]; orb.yaw=v.yaw; orb.pitch=v.pitch; orb.zoom=1; camT.set(v.t[0],v.t[1],v.t[2]);
+  if(reduce||Math.abs(camP.x-v.t[0])>45) desiredCam(camP);
+  spat.visible=n===1;
+  gantry.position.x=SX[n]; gantry.visible=n!==3;
+  if(n>=3) trayG.position.set(SX[3],1.62,0); else trayG.position.set(SX[2],0.12,0);
+  dir.position.set(SX[n]-5,15,8); dir.target.position.set(SX[n],0,0);
+  for(var i2=0;i2<5;i2++) $('ctl'+i2).hidden=i2!==n;
+  $('stepTitle').textContent=(n+1)+'. '+STEPS[n].t; $('stepText').textContent=STEPS[n].d;
+  Array.prototype.forEach.call($('steps').querySelectorAll('button'),function(b,i3){ if(i3===n) b.setAttribute('aria-current','step'); else b.removeAttribute('aria-current'); });
+  $('prev').disabled=n===0;
+  $('next').hidden=n===4; if(n<4) $('next').textContent='Siguiente: '+STEPS[n+1].t;
+  if(n===4) $('prodNote').textContent=S.bakedOnce?'La línea reproduce tu horneado (índice de dorado promedio '+fmt(S.bakeAvg,2)+'; lo ideal está entre 0,45 y 0,75). Además, 1 de cada 10 sale cruda, quemada o rota.':'La línea usa un horneado ideal. Además, 1 de cada 10 galletas sale cruda, quemada o rota. Sube el ruido y mira qué pasa con los aciertos.';
+  setSci();
+}
+function setSci(){ $('sciBody').textContent=SCI[S.stage][S.tab]; $('sciAsk').textContent=SCI[S.stage].ask; }
+
+STEPS.forEach(function(s,i){
+  var li=document.createElement('li'), b=document.createElement('button');
+  b.innerHTML='<span class="n">'+(i+1)+'</span><span class="t">'+s.t+'</span>'; b.setAttribute('aria-label','Paso '+(i+1)+': '+s.t);
+  b.addEventListener('click',function(){ setStage(i); }); li.appendChild(b); $('steps').appendChild(li);
+});
+ING.forEach(function(g){
+  var b=document.createElement('button'); b.className='ing'; b.dataset.id=g.id; b.setAttribute('aria-pressed','false');
+  b.innerHTML='<i style="background:#'+('00000'+g.c.toString(16)).slice(-6)+'"></i><span><b>'+g.n+'</b><small>'+g.q+'</small></span>';
+  b.addEventListener('click',function(){ if(S.added[g.id]) $('ingNote').textContent=g.note; else addIngredient(g.id,false); });
+  $('ings').appendChild(b);
+});
+RX.forEach(function(r){ var li=document.createElement('li'); li.innerHTML='<span>'+r[0]+' °C</span><span>'+r[1]+'</span>'; $('rx').appendChild(li); });
+$('empty').addEventListener('click',emptyBowl);
+$('mixBtn').addEventListener('click',function(){ setMixing(!S.mixing); });
+$('grams').addEventListener('input',function(e){ S.grams=+e.target.value; $('gOut').textContent=S.grams+' g'; });
+$('addBall').addEventListener('click',function(){ addCookie(S.grams); });
+$('fillTray').addEventListener('click',function(){ while(cookies.length<12) addCookie(S.grams); });
+$('delBall').addEventListener('click',removeCookie);
+$('temp').addEventListener('input',function(e){ S.ovenT=+e.target.value; $('tOut').textContent=S.ovenT+' °C'; });
+$('bakeBtn').addEventListener('click',function(){
+  if(S.bakeDone) resetBake();
+  S.baking=true; $('bakeBtn').disabled=true; $('pullBtn').disabled=false;
+  $('bakeNote').textContent='Horneando. Mira el detector y saca la bandeja cuando las galletas estén doradas.';
+});
+$('pullBtn').addEventListener('click',pullTray);
+$('rebake').addEventListener('click',resetBake);
+$('beltBtn').addEventListener('click',function(){
+  S.beltOn=!S.beltOn; this.setAttribute('aria-pressed',S.beltOn?'true':'false'); this.textContent=S.beltOn?'Pausar la banda':'Encender la banda';
+});
+$('resetStats').addEventListener('click',function(){ S.stats={tn:0,fp:0,fn:0,tp:0}; clearProd(); spawnDist=2; });
+$('speed').addEventListener('input',function(e){ S.speed=+e.target.value; $('vOut').textContent=fmt(S.speed,1); });
+$('noise').addEventListener('input',function(e){ S.noise=+e.target.value; $('nOut').textContent=S.noise; });
+$('tabs').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return; S.tab=b.dataset.k;
+  Array.prototype.forEach.call(this.children,function(c){ c.setAttribute('aria-pressed',c===b?'true':'false'); }); setSci();
+});
+$('prev').addEventListener('click',function(){ setStage(S.stage-1); });
+$('next').addEventListener('click',function(){ if(!gate()) setStage(S.stage+1); });
+
+/* ---------- bucle ---------- */
+setStage(0);
+var last=performance.now(), frame=0;
+function loop(now){
+  var dt=Math.min(0.05,(now-last)/1000); last=now; frame++;
+  var st=S.stage;
+  if(st<=1) updateBowl(dt,now/1000);
+  if(st===3||doorAng<1.44) updateBake(dt);
+  if(st===4) updateProd(dt);
+  desiredCam(tmpV); camP.lerp(tmpV,reduce?1:1-Math.exp(-dt*6));
+  camera.position.copy(camP); camera.lookAt(camT);
+  renderer.shadowMap.needsUpdate=true;
+  renderer.render(scene,camera);
+  if(frame%(st===4?5:4)===0) analyze();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
